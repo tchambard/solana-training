@@ -1,88 +1,93 @@
 {
-  "name": "solana-training",
-  "version": "1.0.0",
-  "scripts": {
-    "lint-all": "yarn workspaces foreach -A -p run lint",
-    "clean-all": "yarn workspaces foreach -A -p run clean",
-    "compile-all": "yarn workspaces foreach -A -pt run compile",
-    "clean-compile-all": "yarn workspaces foreach -A -pt run clean-compile",
-    "test-all": "yarn workspaces foreach -t -j 1 run test",
-    "g:clean": "cd $INIT_CWD && rimraf build",
-    "g:lint": "cd $INIT_CWD && eslint 'src/**/*.ts*'",
-    "g:lint-fix": "cd $INIT_CWD && yarn g:lint --fix",
-    "g:compile": "cd $INIT_CWD && echo $INIT_CWD && tsc -v && tsc --pretty",
-    "g:compile-watch": "cd $INIT_CWD && tsc --pretty -w",
-    "g:clean-compile": "cd $INIT_CWD && yarn g:clean && yarn g:compile",
-    "g:clean-lint-compile": "cd $INIT_CWD && yarn g:clean && yarn g:lint && yarn g:compile",
-    "g:depcheck": "cd $INIT_CWD && depcheck",
-    "g:test": "cd $INIT_CWD && CONF_FILE=$INIT_CWD/build/config/config_test.js mocha --full-trace --recursive --exit --require source-map-support/register 'build/test/**/*.spec.js'",
-    "g:test-watch": "cd $INIT_CWD && CONF_FILE=$INIT_CWD/build/config/config_test.js mocha -w -R spec --full-trace --recursive --require source-map-support/register 'build/test/**/*.spec.js'",
-    "g:coverage": "cd $INIT_CWD && CONF_FILE=$INIT_CWD/build/config/config_test.js nyc mocha --full-trace --recursive --require source-map-support/register 'build/test/**/*.spec.js'"
-  },
-  "devDependencies": {
-    "@types/chai": "^4.3.16",
-    "@types/chai-as-promised": "^7.1.8",
-    "@types/lodash": "^4.17.1",
-    "@types/mocha": "^10.0.6",
-    "@types/node": "^20.12.10",
-    "@typescript-eslint/eslint-plugin": "5.62.0",
-    "@typescript-eslint/parser": "5.62.0",
-    "@yarnpkg/cli": "^4.2.1",
-    "@yarnpkg/core": "^4.0.5",
-    "chai": "^5.1.0",
-    "chai-as-promised": "^7.1.1",
-    "eslint": "8.23.1",
-    "eslint-config-airbnb-base": "15.0.0",
-    "eslint-plugin-chai-friendly": "0.7.2",
-    "eslint-plugin-import": "2.26.0",
-    "eslint-plugin-import-newlines": "1.2.3",
-    "eslint-plugin-jsdoc": "39.3.6",
-    "eslint-plugin-mocha": "10.1.0",
-    "eslint-plugin-no-only-tests": "3.0.0",
-    "eslint-plugin-prefer-arrow": "1.2.3",
-    "eslint-plugin-simple-import-sort": "^8.0.0",
-    "eslint-plugin-unused-imports": "2.0.0",
-    "nyc": "^15.1.0",
-    "rimraf": "^5.0.5",
-    "typescript": "^5.4.5"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git@github.com/tchambard/solana-training.git"
-  },
-  "author": "teddy.chambard@gmail.com",
-  "license": "MIT",
-  "workspaces": [
-    "packages/programs/*",
-    "packages/fronts/*"
-  ],
-  "resolutions": {
-    "@types/react": "18.2.0",
-    "moment": "2.24.0"
-  },
-  "packageManager": "yarn@4.2.1",
-  "nyc": {
-    "include": [
-      "build/lib/*.js",
-      "build/lib/**/*.js"
+    "name": "solana-training",
+    "version": "1.0.0",
+    "scripts": {
+        "lint-all": "yarn workspaces foreach -A -p run lint",
+        "clean-all": "yarn workspaces foreach -A -p run clean",
+        "compile-all": "yarn workspaces foreach -A -pt run compile",
+        "clean-compile-all": "yarn workspaces foreach -A -pt run clean-compile",
+        "test-all": "yarn workspaces foreach -t -j 1 run test",
+        "g:clean": "cd $INIT_CWD && rimraf build",
+        "g:lint": "cd $INIT_CWD && eslint 'src/**/*.ts*'",
+        "g:lint-fix": "cd $INIT_CWD && yarn g:lint --fix",
+        "g:compile": "cd $INIT_CWD && echo $INIT_CWD && tsc -v && tsc --pretty",
+        "g:compile-watch": "cd $INIT_CWD && tsc --pretty -w",
+        "g:clean-compile": "cd $INIT_CWD && yarn g:clean && yarn g:compile",
+        "g:clean-lint-compile": "cd $INIT_CWD && yarn g:clean && yarn g:lint && yarn g:compile",
+        "g:depcheck": "cd $INIT_CWD && depcheck",
+        "g:test": "cd $INIT_CWD && CONF_FILE=$INIT_CWD/build/config/config_test.js mocha --full-trace --recursive --exit --require source-map-support/register 'build/test/**/*.spec.js'",
+        "g:test-watch": "cd $INIT_CWD && CONF_FILE=$INIT_CWD/build/config/config_test.js mocha -w -R spec --full-trace --recursive --require source-map-support/register 'build/test/**/*.spec.js'",
+        "g:coverage": "cd $INIT_CWD && CONF_FILE=$INIT_CWD/build/config/config_test.js nyc mocha --full-trace --recursive --require source-map-support/register 'build/test/**/*.spec.js'"
+    },
+    "devDependencies": {
+        "@types/chai": "^4.3.16",
+        "@types/chai-as-promised": "^7.1.8",
+        "@types/lodash": "^4.17.1",
+        "@types/mocha": "^10.0.6",
+        "@types/node": "^20.12.11",
+        "@typescript-eslint/eslint-plugin": "5.62.0",
+        "@typescript-eslint/parser": "5.62.0",
+        "@yarnpkg/cli": "^4.2.2",
+        "@yarnpkg/core": "^4.0.5",
+        "chai": "^5.1.1",
+        "chai-as-promised": "^7.1.2",
+        "eslint": "8.57.0",
+        "eslint-config-airbnb-base": "15.0.0",
+        "eslint-plugin-chai-friendly": "0.7.4",
+        "eslint-plugin-import": "2.29.1",
+        "eslint-plugin-import-newlines": "1.4.0",
+        "eslint-plugin-jsdoc": "39.9.1",
+        "eslint-plugin-mocha": "10.4.3",
+        "eslint-plugin-no-only-tests": "3.1.0",
+        "eslint-plugin-prefer-arrow": "1.2.3",
+        "eslint-plugin-simple-import-sort": "^8.0.0",
+        "eslint-plugin-unused-imports": "2.0.0",
+        "nyc": "^15.1.0",
+        "rimraf": "^5.0.7",
+        "typescript": "^5.4.5"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git@github.com/tchambard/solana-training.git"
+    },
+    "author": "teddy.chambard@gmail.com",
+    "license": "MIT",
+    "workspaces": [
+        "packages/programs/*",
+        "packages/fronts/*"
     ],
-    "exclude": [
-      "**/index.js"
-    ],
-    "extension": [
-      ".js"
-    ],
-    "reporter": [
-      "lcov",
-      "text"
-    ],
-    "sourceMap": true,
-    "instrument": true,
-    "lines": 90,
-    "statements": 0,
-    "functions": 0,
-    "branches": 0,
-    "all": true,
-    "cache": false
-  }
+    "resolutions": {
+        "@types/react": "18.3.1",
+        "moment": "2.24.0",
+        "@trezor/connect-web": "9.2.2",
+        "@ledgerhq/errors": "6.16.3"
+    },
+    "overrides": {
+        "@ledgerhq/errors": "6.16.3"
+    },
+    "packageManager": "yarn@4.2.2",
+    "nyc": {
+        "include": [
+            "build/lib/*.js",
+            "build/lib/**/*.js"
+        ],
+        "exclude": [
+            "**/index.js"
+        ],
+        "extension": [
+            ".js"
+        ],
+        "reporter": [
+            "lcov",
+            "text"
+        ],
+        "sourceMap": true,
+        "instrument": true,
+        "lines": 90,
+        "statements": 0,
+        "functions": 0,
+        "branches": 0,
+        "all": true,
+        "cache": false
+    }
 }

@@ -1,0 +1,48 @@
+import { Box, Container, Toolbar, useMediaQuery } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
+import { LazyLoadImage } from 'react-lazy-load-image-component'
+import { useNavigate } from 'react-router'
+
+import ColorModeChanger from '@/components/theme/ColorModeChanger'
+
+import logo from '@/assets/img/logo/solana-sol-logo.svg'
+
+import { useRecoilValue } from 'recoil'
+import { colorModeState } from '@/store/colorMode'
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
+
+export default function DefaultHeader() {
+  const navigate = useNavigate()
+  const theme = useTheme()
+  const xsDisplay = useMediaQuery(theme.breakpoints.down('sm'))
+  return (
+    <>
+      <Container maxWidth="lg">
+        <Toolbar>
+          {(
+            <Box
+              onClick={() => {
+                navigate('/')
+              }}
+              style={{ cursor: 'pointer' }}
+            >
+              <LazyLoadImage
+                width="40"
+                height="40"
+                src={logo}
+                alt="Logo"
+                effect="opacity"
+              />
+            </Box>
+          )}
+
+          <div style={{ flexGrow: 1 }} />
+          {!xsDisplay && <ColorModeChanger />}
+          <Box pl={2}>
+            <WalletMultiButton />
+          </Box>
+        </Toolbar>
+      </Container>
+    </>
+  )
+}
