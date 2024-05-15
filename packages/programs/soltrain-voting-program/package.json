@@ -1,7 +1,7 @@
 {
     "name": "soltrain-voting-program",
     "scripts": {
-        "compile": "anchor build",
+        "compile": "anchor build && yarn run lint-fix",
         "lint": "yarn run g:prettier",
         "lint-fix": "yarn run g:prettier-fix",
         "test": "anchor test"
