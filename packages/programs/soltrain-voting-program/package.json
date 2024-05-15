@@ -1,0 +1,12 @@
+{
+    "name": "soltrain-voting-program",
+    "scripts": {
+        "compile": "anchor build",
+        "lint": "prettier \"*/**/*{.js,.ts}\" --check",
+        "lint-fix": "prettier \"*/**/*{.js,.ts}\" -w",
+        "test": "anchor test"
+    },
+    "dependencies": {
+        "@coral-xyz/anchor": "^0.30.0"
+    }
+}
