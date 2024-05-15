@@ -7,17 +7,20 @@
         "compile-all": "yarn workspaces foreach -A -pt run compile",
         "clean-compile-all": "yarn workspaces foreach -A -pt run clean-compile",
         "test-all": "yarn workspaces foreach -t -j 1 run test",
-        "g:clean": "cd $INIT_CWD && rimraf build",
-        "g:lint": "cd $INIT_CWD && eslint 'src/**/*.ts*'",
-        "g:lint-fix": "cd $INIT_CWD && yarn g:lint --fix",
+        "g:clean": "cd $INIT_CWD && rimraf",
+        "g:lint": "cd $INIT_CWD && yarn run g:lint && yarn run g:prettier",
+        "g:lint-fix": "cd $INIT_CWD && yarn run g:lint-fix && yarn run g:prettier-fix",
         "g:compile": "cd $INIT_CWD && echo $INIT_CWD && tsc -v && tsc --pretty",
         "g:compile-watch": "cd $INIT_CWD && tsc --pretty -w",
         "g:clean-compile": "cd $INIT_CWD && yarn g:clean && yarn g:compile",
         "g:clean-lint-compile": "cd $INIT_CWD && yarn g:clean && yarn g:lint && yarn g:compile",
         "g:depcheck": "cd $INIT_CWD && depcheck",
-        "g:test": "cd $INIT_CWD && CONF_FILE=$INIT_CWD/build/config/config_test.js mocha --full-trace --recursive --exit --require source-map-support/register 'build/test/**/*.spec.js'",
-        "g:test-watch": "cd $INIT_CWD && CONF_FILE=$INIT_CWD/build/config/config_test.js mocha -w -R spec --full-trace --recursive --require source-map-support/register 'build/test/**/*.spec.js'",
-        "g:coverage": "cd $INIT_CWD && CONF_FILE=$INIT_CWD/build/config/config_test.js nyc mocha --full-trace --recursive --require source-map-support/register 'build/test/**/*.spec.js'"
+        "g:mocha": "cd $INIT_CWD && mocha",
+        "g:ts-mocha": "cd $INIT_CWD && ts-mocha",
+        "g:eslint": "cd $INIT_CWD && eslint 'src/**/*.ts*'",
+        "g:eslint-fix": "cd $INIT_CWD && yarn g:eslint --fix",
+        "g:prettier": "cd $INIT_CWD && prettier \"*/**/*{.js,.ts}\" --check",
+        "g:prettier-fix": "cd $INIT_CWD && prettier \"*/**/*{.js,.ts}\" -w"
     },
     "devDependencies": {
         "@types/chai": "^4.3.16",
@@ -43,7 +46,9 @@
         "eslint-plugin-simple-import-sort": "^8.0.0",
         "eslint-plugin-unused-imports": "2.0.0",
         "nyc": "^15.1.0",
+        "prettier": "^3.2.5",
         "rimraf": "^5.0.7",
+        "ts-mocha": "^10.0.0",
         "typescript": "^5.4.5"
     },
     "repository": {
@@ -65,29 +70,5 @@
     "overrides": {
         "@ledgerhq/errors": "6.16.3"
     },
-    "packageManager": "yarn@4.2.2",
-    "nyc": {
-        "include": [
-            "build/lib/*.js",
-            "build/lib/**/*.js"
-        ],
-        "exclude": [
-            "**/index.js"
-        ],
-        "extension": [
-            ".js"
-        ],
-        "reporter": [
-            "lcov",
-            "text"
-        ],
-        "sourceMap": true,
-        "instrument": true,
-        "lines": 90,
-        "statements": 0,
-        "functions": 0,
-        "branches": 0,
-        "all": true,
-        "cache": false
-    }
+    "packageManager": "yarn@4.2.2"
 }

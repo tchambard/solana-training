@@ -4,13 +4,11 @@
     "version": "1.0.0",
     "type": "module",
     "scripts": {
-        "dev": "VITE_CJS_TRACE=true vite dev",
-        "build": "tsc && vite build",
+        "compile": "yarn run g:clean dist && tsc && vite build",
+        "dev": "vite dev",
         "preview": "vite preview",
-        "pre-commit": "run-p 'pre-commit:*'",
-        "pre-commit:format": "prettier --write --ignore-unknown .",
-        "pre-commit:lint": "eslint --fix",
-        "pre-commit:typecheck": "tsc --noEmit"
+        "lint": "yarn run g:prettier \"*/**/*{.js,.ts}\" --check",
+        "lint-fix": "eslint --fix && yarn run g:prettier \"*/**/*{.js,.ts}\" -w"
     },
     "dependencies": {
         "@emotion/react": "11.11.4",
