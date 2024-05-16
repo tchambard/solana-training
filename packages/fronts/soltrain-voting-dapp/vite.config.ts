@@ -24,6 +24,7 @@ export default defineConfig({
         include: ['buffer', 'process'],
     },
     build: {
+        chunkSizeWarningLimit: 1000,
         target: ["esnext"], // 👈 build.target
         rollupOptions: {
             onwarn(warning, warn) {
@@ -32,13 +33,6 @@ export default defineConfig({
                 }
                 warn(warning);
             },
-            output: {
-                manualChunks: (id: string) => {
-                    if (id.includes('node_modules/') && !id.includes('soltrain-')) {
-                        return 'vendors';
-                    }
-                }
-            }
         },
     },
     plugins: [
@@ -69,7 +63,27 @@ export default defineConfig({
             },
         }),
         tsconfigPaths(),
-        VitePWA({}),
+        VitePWA({
+            manifest: {
+                name: "Solana voting dApp",
+                short_name: "Solana voting dApp",
+                icons: [
+                    {
+                        src: "/android-chrome-192x192.png",
+                        sizes: "192x192",
+                        type: "image/png"
+                    },
+                    {
+                        src: "/android-chrome-512x512.png",
+                        sizes: "512x512",
+                        type: "image/png"
+                    }
+                ],
+                theme_color: "#ffffff",
+                background_color: "#ffffff",
+                display: "standalone"
+            }
+        }),
         createHtmlPlugin({
             minify: true,
             inject: {
@@ -81,5 +95,6 @@ export default defineConfig({
             },
         }),
         viteCompression(),
+        splitVendorChunkPlugin(),
     ],
 })

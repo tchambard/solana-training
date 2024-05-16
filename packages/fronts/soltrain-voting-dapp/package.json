@@ -4,7 +4,9 @@
     "version": "1.0.0",
     "type": "module",
     "scripts": {
-        "compile": "yarn run g:clean dist && tsc && vite build",
+        "clean": "yarn run g:clean dist",
+        "compile": "vite build",
+        "clean-compile": "yarn run g:clean-compile",
         "dev": "vite dev",
         "preview": "vite preview",
         "lint": "yarn run g:prettier \"*/**/*{.js,.ts}\" --check",
