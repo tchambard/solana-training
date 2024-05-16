@@ -2,11 +2,11 @@
     "name": "solana-training",
     "version": "1.0.0",
     "scripts": {
-        "lint-all": "yarn workspaces foreach -A -p run lint",
-        "clean-all": "yarn workspaces foreach -A -p run clean",
-        "compile-all": "yarn workspaces foreach -A -pt run compile",
-        "clean-compile-all": "yarn workspaces foreach -A -pt run clean-compile",
-        "test-all": "yarn workspaces foreach -t -j 1 run test",
+        "lint-all": "yarn workspaces foreach -Apt run lint",
+        "clean-all": "yarn workspaces foreach -Apt run clean",
+        "compile-all": "yarn workspaces foreach -Apt run compile",
+        "clean-compile-all": "yarn workspaces foreach -Apt run clean-compile",
+        "test-all": "yarn workspaces foreach -Apt -j 1 run test",
         "g:clean": "cd $INIT_CWD && rimraf",
         "g:lint": "cd $INIT_CWD && yarn run g:lint && yarn run g:prettier",
         "g:lint-fix": "cd $INIT_CWD && yarn run g:lint-fix && yarn run g:prettier-fix",
@@ -48,7 +48,6 @@
         "nyc": "^15.1.0",
         "prettier": "^3.2.5",
         "rimraf": "^5.0.7",
-        "ts-mocha": "^10.0.0",
         "typescript": "^5.4.5"
     },
     "repository": {
