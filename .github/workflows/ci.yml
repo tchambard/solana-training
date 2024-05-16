@@ -37,7 +37,7 @@ jobs:
           ${{ runner.OS }}-node-
     - name: Install Yarn
       run: |
-        npm i -g yarn && corepack enable && yarn set version stable
+        npm i -g yarn && corepack enable && yarn set version stable && yarn plugin import workspace-tools
     - name: Install
       run: |
         yarn install
