@@ -4,12 +4,12 @@ import {
   EpicsYellow,
   EpicsGreen,
   EpicsGrey,
-} from './colors'
-import { enUS } from '@mui/material/locale'
-import { createTheme } from '@mui/material/styles'
-import { grey } from '@mui/material/colors'
+} from "./colors";
+import { enUS } from "@mui/material/locale";
+import { createTheme } from "@mui/material/styles";
+import { grey } from "@mui/material/colors";
 
-export const makeTheme = (mode: 'light' | 'dark') =>
+export const makeTheme = (mode: "light" | "dark") =>
   createTheme(
     {
       breakpoints: {
@@ -23,7 +23,7 @@ export const makeTheme = (mode: 'light' | 'dark') =>
       },
       palette: {
         mode,
-        ...(mode === 'light'
+        ...(mode === "light"
           ? {
               primary: {
                 light: EpicsBlue[200],
@@ -132,82 +132,82 @@ export const makeTheme = (mode: 'light' | 'dark') =>
         fontWeightBold: 700,
         h1: {
           fontWeight: 700,
-          fontSize: '2.66667rem',
-          letterSpacing: 'normal',
+          fontSize: "2.66667rem",
+          letterSpacing: "normal",
           lineHeight: 1.14286,
         },
         h2: {
           fontWeight: 700,
-          fontSize: '2rem',
-          letterSpacing: 'normal',
+          fontSize: "2rem",
+          letterSpacing: "normal",
           lineHeight: 1.167,
         },
         h3: {
           fontWeight: 700,
-          fontSize: '1.6rem',
-          letterSpacing: 'normal',
+          fontSize: "1.6rem",
+          letterSpacing: "normal",
           lineHeight: 1.2,
         },
         h4: {
           fontWeight: 700,
-          fontSize: '1.33333rem',
-          letterSpacing: 'normal',
+          fontSize: "1.33333rem",
+          letterSpacing: "normal",
           lineHeight: 1.235,
         },
         h5: {
           fontWeight: 700,
-          fontSize: '1.14286rem',
-          letterSpacing: 'normal',
+          fontSize: "1.14286rem",
+          letterSpacing: "normal",
           lineHeight: 1.33333,
         },
         h6: {
           fontWeight: 700,
-          fontSize: '1rem',
-          letterSpacing: 'normal',
+          fontSize: "1rem",
+          letterSpacing: "normal",
           lineHeight: 1.6,
         },
         subtitle1: {
           fontWeight: 500,
-          fontSize: '1.33333rem',
-          letterSpacing: 'normal',
+          fontSize: "1.33333rem",
+          letterSpacing: "normal",
           lineHeight: 1.33333,
         },
         subtitle2: {
           fontWeight: 500,
-          fontSize: '1.14286rem',
-          letterSpacing: 'normal',
+          fontSize: "1.14286rem",
+          letterSpacing: "normal",
           lineHeight: 1.6,
         },
         body1: {
           fontWeight: 500,
-          fontSize: '1rem',
-          letterSpacing: 'normal',
+          fontSize: "1rem",
+          letterSpacing: "normal",
           lineHeight: 1.6,
         },
         body2: {
           fontWeight: 500,
-          fontSize: '0.88889rem',
-          letterSpacing: 'normal',
+          fontSize: "0.88889rem",
+          letterSpacing: "normal",
           lineHeight: 1.75,
         },
         button: {
           fontWeight: 700,
-          fontSize: '0.88889rem',
-          textTransform: 'none',
-          letterSpacing: 'normal',
+          fontSize: "0.88889rem",
+          textTransform: "none",
+          letterSpacing: "normal",
           lineHeight: 1.75,
         },
         caption: {
           fontWeight: 400,
-          fontSize: '0.8rem',
-          letterSpacing: 'normal',
+          fontSize: "0.8rem",
+          letterSpacing: "normal",
           lineHeight: 1.14286,
         },
         overline: {
           fontWeight: 500,
-          fontSize: '0.8rem',
-          textTransform: 'none',
-          letterSpacing: 'normal',
+          fontSize: "0.8rem",
+          textTransform: "none",
+          letterSpacing: "normal",
           lineHeight: 2.66667,
         },
       },
@@ -215,32 +215,32 @@ export const makeTheme = (mode: 'light' | 'dark') =>
         borderRadius: 16,
       },
       shadows: [
-        'none',
-        'rgb(169 174 183 / 50%) 0px 1px 2px 0px',
-        'rgb(169 174 183 / 50%) 0px 1.5px 3px 0px',
-        'rgb(169 174 183 / 50%) 0px 2px 4px 0px',
-        'rgb(169 174 183 / 50%) 0px 2.5px 5px 0px',
-        'rgb(169 174 183 / 50%) 0px 3px 6px 0px',
-        'rgb(169 174 183 / 50%) 0px 3.5px 7px 0px',
-        'rgb(169 174 183 / 50%) 0px 4px 8px 0px',
-        'rgb(169 174 183 / 50%) 0px 4.5px 9px 0px',
-        'rgb(169 174 183 / 50%) 0px 5px 10px 0px',
-        'rgb(169 174 183 / 50%) 0px 5.5px 11px 0px',
-        'rgb(169 174 183 / 50%) 0px 6px 12px 0px',
-        'rgb(169 174 183 / 50%) 0px 6.5px 13px 0px',
-        'rgb(169 174 183 / 50%) 0px 7px 14px 0px',
-        'rgb(169 174 183 / 50%) 0px 7.5px 15px 0px',
-        'rgb(169 174 183 / 50%) 0px 8px 16px 0px',
-        'rgb(169 174 183 / 50%) 0px 8.5px 17px 0px',
-        'rgb(169 174 183 / 50%) 0px 9px 18px 0px',
-        'rgb(169 174 183 / 50%) 0px 9.5px 19px 0px',
-        'rgb(169 174 183 / 50%) 0px 10px 20px 0px',
-        'rgb(169 174 183 / 50%) 0px 10.5px 21px 0px',
-        'rgb(169 174 183 / 50%) 0px 11px 22px 0px',
-        'rgb(169 174 183 / 50%) 0px 11.5px 23px 0px',
-        'rgb(169 174 183 / 50%) 0px 12px 24px 0px',
-        'rgb(169 174 183 / 50%) 0px 12.5px 25px 0px',
+        "none",
+        "rgb(169 174 183 / 50%) 0px 1px 2px 0px",
+        "rgb(169 174 183 / 50%) 0px 1.5px 3px 0px",
+        "rgb(169 174 183 / 50%) 0px 2px 4px 0px",
+        "rgb(169 174 183 / 50%) 0px 2.5px 5px 0px",
+        "rgb(169 174 183 / 50%) 0px 3px 6px 0px",
+        "rgb(169 174 183 / 50%) 0px 3.5px 7px 0px",
+        "rgb(169 174 183 / 50%) 0px 4px 8px 0px",
+        "rgb(169 174 183 / 50%) 0px 4.5px 9px 0px",
+        "rgb(169 174 183 / 50%) 0px 5px 10px 0px",
+        "rgb(169 174 183 / 50%) 0px 5.5px 11px 0px",
+        "rgb(169 174 183 / 50%) 0px 6px 12px 0px",
+        "rgb(169 174 183 / 50%) 0px 6.5px 13px 0px",
+        "rgb(169 174 183 / 50%) 0px 7px 14px 0px",
+        "rgb(169 174 183 / 50%) 0px 7.5px 15px 0px",
+        "rgb(169 174 183 / 50%) 0px 8px 16px 0px",
+        "rgb(169 174 183 / 50%) 0px 8.5px 17px 0px",
+        "rgb(169 174 183 / 50%) 0px 9px 18px 0px",
+        "rgb(169 174 183 / 50%) 0px 9.5px 19px 0px",
+        "rgb(169 174 183 / 50%) 0px 10px 20px 0px",
+        "rgb(169 174 183 / 50%) 0px 10.5px 21px 0px",
+        "rgb(169 174 183 / 50%) 0px 11px 22px 0px",
+        "rgb(169 174 183 / 50%) 0px 11.5px 23px 0px",
+        "rgb(169 174 183 / 50%) 0px 12px 24px 0px",
+        "rgb(169 174 183 / 50%) 0px 12.5px 25px 0px",
       ],
     },
-    enUS
-  )
+    enUS,
+  );
