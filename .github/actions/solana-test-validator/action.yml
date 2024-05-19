@@ -1,0 +1,19 @@
+name: 'solana-test-validator-docker'
+description: 'Setup a solana-test-validator container ready with anchor'
+author: 'Teddy Chambard'
+branding:
+  color: purple
+  icon: activity
+inputs:
+  # See available versions https://hub.docker.com/r/tchambard/solana-test-validator/tags
+  solana_version:
+    description: 'Solana version'
+    required: true
+    default: '1.18.12'
+  anchor_version:
+    description: 'Anchor version'
+    required: true
+    default: '0.30.0'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
