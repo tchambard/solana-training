@@ -1,10 +1,10 @@
 {
     "name": "soltrain-voting-program",
     "scripts": {
-        "compile": "anchor-docker build && yarn run lint-fix",
+        "compile": "yarn run g:anchor build && yarn run lint-fix",
         "lint": "yarn run g:prettier",
         "lint-fix": "yarn run g:prettier-fix",
-        "test": "anchor-docker test --skip-local-validator"
+        "test": "yarn run g:anchor test --skip-local-validator"
     },
     "dependencies": {
         "@coral-xyz/anchor": "^0.30.0"
