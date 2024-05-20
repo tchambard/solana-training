@@ -17,9 +17,6 @@
         "g:depcheck": "cd $INIT_CWD && depcheck",
         "g:mocha": "cd $INIT_CWD && mocha",
         "g:ts-mocha": "cd $INIT_CWD && ts-mocha",
-        "g:anchor": "cd $INIT_CWD && anchor-docker",
-        "g:solana": "cd $INIT_CWD && solana-docker",
-        "g:cargo": "cd $INIT_CWD && cargo-docker",
         "g:eslint": "cd $INIT_CWD && eslint 'src/**/*.ts*'",
         "g:eslint-fix": "cd $INIT_CWD && yarn g:eslint --fix",
         "g:prettier": "cd $INIT_CWD && prettier \"*/**/*{.js,.ts}\" --check",
@@ -51,7 +48,7 @@
         "nyc": "^15.1.0",
         "prettier": "^3.2.5",
         "rimraf": "^5.0.7",
-        "solana-test-validator-docker": "^1.0.6",
+        "solana-test-validator-docker": "^1.0.12",
         "typescript": "^5.4.5"
     },
     "repository": {

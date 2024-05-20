@@ -5,17 +5,22 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-soltrain_voting_program = "Gma1Uuq1wjsg3gsbuaWoHki2QPtWn1ikD46s2WUTyWtE"
+soltrain_voting_program = "7V6xnj4pkQY96MWF8PKmHMgTKHS2YFLZP632ZFx6QSdE"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
 cluster = "Localnet"
-wallet = "~/.config/solana/id.json"
+wallet = "/opt/.config/solana/id.json"
+gossip_host = "0.0.0.0"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*"
 
 [workspace]
 types = "types/"
+
+[test.validator]
+rpc_port = 8899
+bind_address = "localhost"

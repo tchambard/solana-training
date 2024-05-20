@@ -51,9 +51,9 @@
   "editor.minimap.enabled": false,
   "editor.bracketPairColorization.enabled": true,
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true,
-    "source.fixAll": true
-  },
+    "source.fixAll.eslint": "explicit",
+    "source.fixAll": "explicit"
+},
   "javascript.preferences.quoteStyle": "single",
   "typescript.preferences.quoteStyle": "single",
   "eslint.validate": [

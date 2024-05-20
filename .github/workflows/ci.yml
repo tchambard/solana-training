@@ -8,49 +8,45 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    container:
+      image: tchambard/solana-test-validator:solana_1.18.12-anchor_0.30.0
+      options: --user root
     strategy:
       matrix:
         node-version: [20.x]
-
     steps:
-    - name: Setup timezone
-      uses: zcong1993/setup-timezone@master
-      with:
-        timezone: Europe/Paris
-    - uses: actions/checkout@v2
-    - name: Fetch all history for all tags and branches
-      run: git fetch origin main
+
     - uses: actions/checkout@v3
 
-    - name: Start Local Validator
-      uses: ./.github/actions/solana-test-validator
+    - name: Yarn cache
+      uses: Andrews-McMeel-Universal/cache-yarn-install@v1
       with:
-        solana_version: 1.18.12
-        anchor_version: 0.30.0
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
+        enable-corepack: true
+        cache-node-modules: true
+        cache-install-state: true
+
+    - name: Rust cache
+      uses: Swatinem/rust-cache@v2
       with:
-        node-version: ${{ matrix.node-version }}
-    - name: Cache Node.js modules
-      uses: actions/cache@v1
-      with:
-        path: ~/.npm # npm cache files are stored in `~/.npm` on Linux/macOS
-        key: ${{ runner.OS }}-node-${{ hashFiles('yarn.lock') }}
-        restore-keys: |
-          ${{ runner.OS }}-node-
-    - name: Install Yarn
+        workspaces: |
+          packages/programs/soltrain-voting-program
+
+    - name: Init solana-test-validator-docker tool
       run: |
-        npm i -g yarn && corepack enable && yarn set version stable
-    - name: Install
-      run: |
-        yarn install
+        ./node_modules/.bin/solana-test-validator-docker init
+
     - name: Lint
       run: |
         yarn run lint-all
+
     - name: Compile
       run: |
         yarn run compile-all
 
+    - name: Test
+      run: |
+        yarn run test-all
