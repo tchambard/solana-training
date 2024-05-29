@@ -1,18 +1,18 @@
-import * as anchor from "@coral-xyz/anchor";
-import { Program } from "@coral-xyz/anchor";
+import * as anchor from '@coral-xyz/anchor';
+import { Program } from '@coral-xyz/anchor';
 
-import { SoltrainVotingProgram } from "../target/types/soltrain_voting_program.js";
+import { SoltrainVotingProgram } from '../types/soltrain_voting_program.js';
 
-describe("soltrain-voting-program", () => {
+describe('soltrain-voting-program', () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
 
   const program = anchor.workspace
-    .SoltrainVotingProgram as Program<SoltrainVotingProgram>;
+      .SoltrainVotingProgram as Program<SoltrainVotingProgram>;
 
-  it("Is initialized!", async () => {
+  it('Is initialized!', async () => {
     // Add your test here.
     const tx = await program.methods.initialize().rpc();
-    console.log("Your transaction signature", tx);
+    console.log('Your transaction signature', tx);
   });
 });

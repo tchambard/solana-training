@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/soltrain_voting_program.json`.
  */
 export type SoltrainVotingProgram = {
-  "address": "7V6xnj4pkQY96MWF8PKmHMgTKHS2YFLZP632ZFx6QSdE",
+  "address": "4PGnHfbudx56T214YReyJ25n3UCfLvWG5icWocESzH6n",
   "metadata": {
     "name": "soltrainVotingProgram",
     "version": "0.1.0",

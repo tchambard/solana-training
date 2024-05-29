@@ -5,7 +5,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-soltrain_voting_program = "7V6xnj4pkQY96MWF8PKmHMgTKHS2YFLZP632ZFx6QSdE"
+soltrain_voting_program = "4PGnHfbudx56T214YReyJ25n3UCfLvWG5icWocESzH6n"
 
 [registry]
 url = "https://api.apr.dev"

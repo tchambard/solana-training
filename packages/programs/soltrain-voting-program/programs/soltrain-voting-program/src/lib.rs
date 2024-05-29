@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("7V6xnj4pkQY96MWF8PKmHMgTKHS2YFLZP632ZFx6QSdE");
+declare_id!("4PGnHfbudx56T214YReyJ25n3UCfLvWG5icWocESzH6n");
 
 #[program]
 pub mod soltrain_voting_program {
