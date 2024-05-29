@@ -1,5 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
+
 import { SoltrainVotingProgram } from "../target/types/soltrain_voting_program.js";
 
 describe("soltrain-voting-program", () => {

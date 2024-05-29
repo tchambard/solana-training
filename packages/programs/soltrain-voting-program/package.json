@@ -1,10 +1,11 @@
 {
     "name": "soltrain-voting-program",
     "scripts": {
-        "compile": "anchor build && yarn run lint-fix",
+        "compile": "anchor-docker build && yarn run lint-fix",
         "lint": "yarn run g:prettier",
         "lint-fix": "yarn run g:prettier-fix",
-        "test": "anchor test"
+        "test": "anchor-docker test",
+        "test-skip-local-validator": "anchor-docker test --skip-local-validator"
     },
     "dependencies": {
         "@coral-xyz/anchor": "^0.30.0"
@@ -12,8 +13,10 @@
     "devDependencies": {
         "@types/chai": "^4.3.16",
         "@types/mocha": "^10.0.6",
+        "@types/shelljs": "^0",
         "chai": "^5.1.1",
         "mocha": "^10.4.0",
+        "shelljs": "^0.8.5",
         "ts-mocha": "^10.0.0"
     }
 }
