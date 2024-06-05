@@ -37,7 +37,7 @@ jobs:
 
     - name: Init solana-test-validator-docker tool
       run: |
-        ./node_modules/.bin/solana-test-validator-docker init
+        ./node_modules/.bin/solana-docker-shell init
 
     - name: Lint
       run: |
