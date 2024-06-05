@@ -8,7 +8,8 @@
         "test-skip-local-validator": "anchor-docker test --skip-local-validator"
     },
     "dependencies": {
-        "@coral-xyz/anchor": "^0.30.0"
+        "@coral-xyz/anchor": "^0.30.0",
+        "@solana/web3.js": "^1.91.8"
     },
     "devDependencies": {
         "@types/chai": "^4.3.16",

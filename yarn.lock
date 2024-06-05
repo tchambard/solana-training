@@ -14576,6 +14576,7 @@ __metadata:
   resolution: "soltrain-voting-program@workspace:packages/programs/soltrain-voting-program"
   dependencies:
     "@coral-xyz/anchor": "npm:^0.30.0"
+    "@solana/web3.js": "npm:^1.91.8"
     "@types/chai": "npm:^4.3.16"
     "@types/mocha": "npm:^10.0.6"
     "@types/shelljs": "npm:^0"
