@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "packages/programs/soltrain-voting-program/programs/soltrain-voting-program"
+]
+resolver = "2"
