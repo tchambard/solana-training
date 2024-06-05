@@ -3,6 +3,7 @@
 [features]
 resolution = true
 skip-lint = false
+seeds = true
 
 [programs.localnet]
 soltrain_voting_program = "4PGnHfbudx56T214YReyJ25n3UCfLvWG5icWocESzH6n"
@@ -13,7 +14,6 @@ url = "https://api.apr.dev"
 [provider]
 cluster = "Localnet"
 wallet = "/opt/.config/solana/id.json"
-gossip_host = "0.0.0.0"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*"
@@ -21,6 +21,12 @@ test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*"
 [workspace]
 types = "types/"
 
+[test]
+startup_wait = 5000
+shutdown_wait = 2000
+upgradeable = false
+
 [test.validator]
-rpc_port = 8899
 bind_address = "localhost"
+ledger = ".anchor/test-ledger"
+rpc_port = 8899
