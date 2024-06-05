@@ -1,24 +1,5 @@
 {
-    "eslint.workingDirectories": [
-        {
-            "mode": "auto"
-        }
-    ],
-    "eslint.lintTask.options": "--resolve-plugins-relative-to node_modules .",
-    "eslint.options": {
-        "resolvePluginsRelativeTo": "node_modules",
-        "overrideConfig": {
-            "rules": {
-                "no-multi-spaces": "warn",
-                "no-whitespace-before-property": "warn",
-                "no-trailing-spaces": "warn",
-                "space-infix-ops": "warn",
-                "block-spacing": "warn"
-            }
-        }
-    },
-    "eslint.nodePath": "node_modules/",
-    "eslint.format.enable": true,
+
     "[typescript]": {
         "editor.defaultFormatter": "vscode.typescript-language-features",
         "editor.tabSize": 4
@@ -27,8 +8,6 @@
         "editor.defaultFormatter": "vscode.typescript-language-features"
     },
     "editor.detectIndentation": false,
-    "eslint.quiet": true,
-    "eslint.run": "onSave",
     "search.exclude": {
         "**/node_modules/**": true,
         "**/build/": true,
@@ -60,12 +39,6 @@
     },
     "javascript.preferences.quoteStyle": "single",
     "typescript.preferences.quoteStyle": "single",
-    "eslint.validate": [
-        "javascript",
-        "javascriptreact",
-        "typescript",
-        "typescriptreact"
-    ],
     "explorer.confirmDelete": false,
     "[json]": {
         "editor.defaultFormatter": "vscode.json-language-features"
