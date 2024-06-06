@@ -13,14 +13,25 @@ pub mod voting {
     ) -> Result<()> {
         let global_account = &mut ctx.accounts.global_account;
         let session_account = &mut ctx.accounts.session_account;
-        session_account.status = WorkflowStatus::None;
+        session_account.status = WorkflowStatus::RegisteringVoters;
 
         session_account.session_id = global_account.session_count;
-        session_account.name = name;
-        session_account.description = description;
+        session_account.name = name.clone();
+        session_account.description = description.clone();
         session_account.proposal_count = 0;
 
         global_account.session_count += 1;
+
+        emit!(WorkflowStatusChanged {
+            session_id: session_account.session_id,
+            previous_status: WorkflowStatus::None,
+            current_status: WorkflowStatus::RegisteringVoters,
+        });
+        emit!(SessionCreated {
+            session_id: session_account.session_id,
+            name,
+            description,
+        });
         Ok(())
     }
 
@@ -86,7 +97,7 @@ pub struct SessionAccount {
     #[max_len(80)]
     pub description: String,
     pub status: WorkflowStatus,
-    pub proposal_count: u64,
+    pub proposal_count: u8,
 }
 
 #[derive(Clone, AnchorSerialize, AnchorDeserialize, InitSpace)]
@@ -98,4 +109,18 @@ pub enum WorkflowStatus {
     VotingSessionStarted,
     VotingSessionEnded,
     VotesTallied,
+}
+
+#[event]
+pub struct WorkflowStatusChanged {
+    pub session_id: u64,
+    pub previous_status: WorkflowStatus,
+    pub current_status: WorkflowStatus,
+}
+
+#[event]
+pub struct SessionCreated {
+    pub session_id: u64,
+    pub name: String,
+    pub description: String,
 }

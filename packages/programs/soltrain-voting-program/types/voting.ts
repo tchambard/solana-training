@@ -106,6 +106,16 @@ export type Voting = {
 			discriminator: [74, 34, 65, 133, 96, 163, 80, 69];
 		},
 	];
+	events: [
+		{
+			name: 'sessionCreated';
+			discriminator: [107, 111, 254, 25, 21, 122, 220, 225];
+		},
+		{
+			name: 'workflowStatusChanged';
+			discriminator: [251, 158, 53, 53, 186, 134, 118, 144];
+		},
+	];
 	types: [
 		{
 			name: 'globalAccount';
@@ -146,7 +156,27 @@ export type Voting = {
 					},
 					{
 						name: 'proposalCount';
+						type: 'u8';
+					},
+				];
+			};
+		},
+		{
+			name: 'sessionCreated';
+			type: {
+				kind: 'struct';
+				fields: [
+					{
+						name: 'sessionId';
 						type: 'u64';
+					},
+					{
+						name: 'name';
+						type: 'string';
+					},
+					{
+						name: 'description';
+						type: 'string';
 					},
 				];
 			};
@@ -176,6 +206,34 @@ export type Voting = {
 					},
 					{
 						name: 'votesTallied';
+					},
+				];
+			};
+		},
+		{
+			name: 'workflowStatusChanged';
+			type: {
+				kind: 'struct';
+				fields: [
+					{
+						name: 'sessionId';
+						type: 'u64';
+					},
+					{
+						name: 'previousStatus';
+						type: {
+							defined: {
+								name: 'workflowStatus';
+							};
+						};
+					},
+					{
+						name: 'currentStatus';
+						type: {
+							defined: {
+								name: 'workflowStatus';
+							};
+						};
 					},
 				];
 			};
