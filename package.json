@@ -28,7 +28,7 @@
         "@types/node": "^20.12.11",
         "@yarnpkg/cli": "^4.2.2",
         "@yarnpkg/core": "^4.0.5",
-        "chai": "^5.1.1",
+        "chai": "^4.4.1",
         "chai-as-promised": "^7.1.2",
         "nyc": "^15.1.0",
         "prettier": "^3.2.5",
