@@ -4,8 +4,7 @@
         "compile": "anchor-docker build && yarn run lint-fix",
         "lint": "yarn run g:prettier",
         "lint-fix": "yarn run g:prettier-fix",
-        "test": "anchor-docker test",
-        "test-skip-local-validator": "anchor-docker test"
+        "test": "anchor-docker test"
     },
     "dependencies": {
         "@coral-xyz/anchor": "^0.30.0",

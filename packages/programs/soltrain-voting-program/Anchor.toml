@@ -20,13 +20,3 @@ test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*"
 
 [workspace]
 types = "types/"
-
-[test]
-startup_wait = 5000
-shutdown_wait = 2000
-upgradeable = false
-
-[test.validator]
-bind_address = "localhost"
-ledger = ".anchor/test-ledger"
-rpc_port = 8899
