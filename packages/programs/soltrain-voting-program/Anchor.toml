@@ -6,7 +6,7 @@ skip-lint = false
 seeds = true
 
 [programs.localnet]
-soltrain_voting_program = "4PGnHfbudx56T214YReyJ25n3UCfLvWG5icWocESzH6n"
+voting = "4PGnHfbudx56T214YReyJ25n3UCfLvWG5icWocESzH6n"
 
 [registry]
 url = "https://api.apr.dev"
