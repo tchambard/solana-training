@@ -50,5 +50,11 @@
     "files.trimTrailingWhitespace": true,
     "rust-analyzer.linkedProjects": [
         "Cargo.toml"
-    ]
+    ],
+    "prettier.singleQuote": true,
+    "prettier.tabWidth": 4,
+    "prettier.trailingComma": "all",
+    "prettier.useTabs": true,
+    "prettier.printWidth": 160,
+    "prettier.jsxSingleQuote": true
 }
