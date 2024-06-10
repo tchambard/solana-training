@@ -17,6 +17,6 @@
     "include": [
         "tests/**/*",
         "migrations/**/*",
-        "types/**/*"
+        "client/**/*"
     ]
 }
