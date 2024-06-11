@@ -92,16 +92,16 @@ export type Voting = {
       ]
     },
     {
-      "name": "initProgram",
+      "name": "initGlobal",
       "discriminator": [
-        56,
-        120,
-        211,
-        99,
-        196,
-        190,
-        129,
-        187
+        44,
+        238,
+        77,
+        253,
+        76,
+        182,
+        192,
+        162
       ],
       "accounts": [
         {
@@ -179,16 +179,16 @@ export type Voting = {
       ]
     },
     {
-      "name": "workflowStatusChanged",
+      "name": "sessionWorkflowStatusChanged",
       "discriminator": [
-        251,
-        158,
-        53,
-        53,
-        186,
-        134,
-        118,
-        144
+        37,
+        80,
+        31,
+        154,
+        111,
+        190,
+        223,
+        237
       ]
     }
   ],
@@ -226,7 +226,7 @@ export type Voting = {
             "name": "status",
             "type": {
               "defined": {
-                "name": "workflowStatus"
+                "name": "sessionWorkflowStatus"
               }
             }
           },
@@ -258,7 +258,7 @@ export type Voting = {
       }
     },
     {
-      "name": "workflowStatus",
+      "name": "sessionWorkflowStatus",
       "type": {
         "kind": "enum",
         "variants": [
@@ -287,7 +287,7 @@ export type Voting = {
       }
     },
     {
-      "name": "workflowStatusChanged",
+      "name": "sessionWorkflowStatusChanged",
       "type": {
         "kind": "struct",
         "fields": [
@@ -299,7 +299,7 @@ export type Voting = {
             "name": "previousStatus",
             "type": {
               "defined": {
-                "name": "workflowStatus"
+                "name": "sessionWorkflowStatus"
               }
             }
           },
@@ -307,7 +307,7 @@ export type Voting = {
             "name": "currentStatus",
             "type": {
               "defined": {
-                "name": "workflowStatus"
+                "name": "sessionWorkflowStatus"
               }
             }
           }

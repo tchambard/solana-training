@@ -8,101 +8,113 @@ import { VotingClient } from '../client';
 const skipPreflight = false;
 
 describe('voting', () => {
-    const provider = anchor.AnchorProvider.env();
-    anchor.setProvider(provider);
+	const provider = anchor.AnchorProvider.env();
+	anchor.setProvider(provider);
 
-    const program = anchor.workspace.Voting as Program<Voting>;
-    const connection = program.provider.connection;
+	const program = anchor.workspace.Voting as Program<Voting>;
+	const connection = program.provider.connection;
 
-    const administrator = provider.wallet as anchor.Wallet;
-    const batman = anchor.web3.Keypair.generate();
+	const administrator = provider.wallet as anchor.Wallet;
+	const batman = anchor.web3.Keypair.generate();
 
-    const client = new VotingClient(program, { skipPreflight });
+	const client = new VotingClient(program, { skipPreflight });
 
-    before(async () => {
-        // initialize program global account
-        await client.initProgram(administrator.payer);
+	before(async () => {
+		// initialize program global account
+		await client.initGlobal(administrator.payer);
 
-        // request airdrop for voting actors
-        await connection.requestAirdrop(batman.publicKey, 1000000000);
-    });
+		// request airdrop for voting actors
+		await connection.requestAirdrop(batman.publicKey, 1000000000);
+	});
 
-    describe('> createVotingSession', () => {
-        it('> should succeed when called with program administrator account', async () => {
-            const expectedSessionId = await client.getNextSessionId();
-            const name = 'Session A';
-            const description = 'A new session';
+	describe('> createVotingSession', () => {
+		it('> should succeed when called with program administrator account', async () => {
+			const expectedSessionId = await client.getNextSessionId();
+			const name = 'Session A';
+			const description = 'A new session';
 
-            const {
-                sessionAccount: session,
-                createdSessionEvents: { sessionCreated, workflowStatusChanged },
-            } = await client.createVotingSession(administrator.payer, name, description);
+			const {
+				sessionAccount: session,
+				createdSessionEvents: { sessionCreated, sessionWorkflowStatusChanged },
+			} = await client.createVotingSession(administrator.payer, name, description);
 
-            assert.equal(session.sessionId.toNumber(), expectedSessionId.toNumber());
-            assert.equal(session.name, name);
-            assert.equal(session.description, description);
-            assert.deepEqual(session.status, { registeringVoters: {} });
+			assert.equal(session.sessionId.toNumber(), expectedSessionId.toNumber());
+			assert.equal(session.name, name);
+			assert.equal(session.description, description);
+			assert.deepEqual(session.status, { registeringVoters: {} });
 
-            assert.equal(workflowStatusChanged.sessionId.toString(), expectedSessionId);
-            assert.deepEqual(workflowStatusChanged.previousStatus, { none: {} });
-            assert.deepEqual(workflowStatusChanged.currentStatus, { registeringVoters: {} });
+			assert.equal(
+				sessionWorkflowStatusChanged.sessionId.toString(),
+				expectedSessionId,
+			);
+			assert.deepEqual(sessionWorkflowStatusChanged.previousStatus, { none: {} });
+			assert.deepEqual(sessionWorkflowStatusChanged.currentStatus, {
+				registeringVoters: {},
+			});
 
-            assert.equal(sessionCreated.sessionId.toNumber(), expectedSessionId);
-            assert.equal(sessionCreated.name, name);
-            assert.equal(sessionCreated.description, description);
-        });
+			assert.equal(sessionCreated.sessionId.toNumber(), expectedSessionId);
+			assert.equal(sessionCreated.name, name);
+			assert.equal(sessionCreated.description, description);
+		});
 
-        it('> should succeed when called with non administrator account', async () => {
-            const expectedSessionId = await client.getNextSessionId();
-            const name = 'Session A';
-            const description = 'A new session';
+		it('> should succeed when called with non administrator account', async () => {
+			const expectedSessionId = await client.getNextSessionId();
+			const name = 'Session A';
+			const description = 'A new session';
 
-            const {
-                sessionAccount: session,
-                createdSessionEvents: { sessionCreated, workflowStatusChanged },
-            } = await client.createVotingSession(batman, name, description);
+			const {
+				sessionAccount: session,
+				createdSessionEvents: { sessionCreated, sessionWorkflowStatusChanged },
+			} = await client.createVotingSession(batman, name, description);
 
-            assert.equal(session.sessionId.toNumber(), expectedSessionId.toNumber());
-            assert.equal(session.name, name);
-            assert.equal(session.description, description);
-            assert.deepEqual(session.status, { registeringVoters: {} });
+			assert.equal(session.sessionId.toNumber(), expectedSessionId.toNumber());
+			assert.equal(session.name, name);
+			assert.equal(session.description, description);
+			assert.deepEqual(session.status, { registeringVoters: {} });
 
-            assert.equal(workflowStatusChanged.sessionId.toString(), expectedSessionId);
-            assert.deepEqual(workflowStatusChanged.previousStatus, { none: {} });
-            assert.deepEqual(workflowStatusChanged.currentStatus, { registeringVoters: {} });
+			assert.equal(
+				sessionWorkflowStatusChanged.sessionId.toString(),
+				expectedSessionId,
+			);
+			assert.deepEqual(sessionWorkflowStatusChanged.previousStatus, { none: {} });
+			assert.deepEqual(sessionWorkflowStatusChanged.currentStatus, {
+				registeringVoters: {},
+			});
 
-            assert.equal(sessionCreated.sessionId.toNumber(), expectedSessionId);
-            assert.equal(sessionCreated.name, name);
-            assert.equal(sessionCreated.description, description);
-        });
-    });
+			assert.equal(sessionCreated.sessionId.toNumber(), expectedSessionId);
+			assert.equal(sessionCreated.name, name);
+			assert.equal(sessionCreated.description, description);
+		});
+	});
 
-    describe('> Voting actions are conditionned by voting session status', () => {
-        beforeEach(async () => {
-            await client.createVotingSession(
-                administrator.payer,
-                'Super Heroes',
-                'A vote for every superheroes to find who will rule the world',
-            );
-        });
+	describe('> Voting actions are conditionned by voting session status', () => {
+		beforeEach(async () => {
+			await client.createVotingSession(
+				administrator.payer,
+				'Super Heroes',
+				'A vote for every superheroes to find who will rule the world',
+			);
+		});
 
-        context('## voting status is RegisteringVoters', () => {
+		context('## voting status is RegisteringVoters', () => {
+			describe('> createVotingSession', () => {
+				it('> should succeed when called with non administrator account', async () => {
+					const expectedSessionId = await client.getNextSessionId();
+					const name = 'New Session';
+					const description = 'A new session';
 
-            describe('> createVotingSession', () => {
+					const {
+						createdSessionEvents: { sessionCreated },
+					} = await client.createVotingSession(batman, name, description);
 
-                it('> should succeed when called with non administrator account', async () => {
-                    const expectedSessionId = await client.getNextSessionId();
-                    const name = 'New Session';
-                    const description = 'A new session';
-
-                    const { createdSessionEvents: { sessionCreated } } =
-                        await client.createVotingSession(batman, name, description);
-
-                    assert.equal(sessionCreated.sessionId.toNumber(), expectedSessionId.toNumber());
-                    assert.equal(sessionCreated.name, name);
-                    assert.equal(sessionCreated.description, description);
-                });
-            });
-        });
-    });
+					assert.equal(
+						sessionCreated.sessionId.toNumber(),
+						expectedSessionId.toNumber(),
+					);
+					assert.equal(sessionCreated.name, name);
+					assert.equal(sessionCreated.description, description);
+				});
+			});
+		});
+	});
 });
