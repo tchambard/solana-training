@@ -134,6 +134,66 @@ export type Voting = {
         }
       ],
       "args": []
+    },
+    {
+      "name": "registerVoter",
+      "discriminator": [
+        229,
+        124,
+        185,
+        99,
+        118,
+        51,
+        226,
+        6
+      ],
+      "accounts": [
+        {
+          "name": "voterAccount",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  111,
+                  116,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "session_account.session_id",
+                "account": "sessionAccount"
+              },
+              {
+                "kind": "arg",
+                "path": "voter"
+              }
+            ]
+          }
+        },
+        {
+          "name": "sessionAccount"
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "voter",
+          "type": "pubkey"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -161,6 +221,19 @@ export type Voting = {
         163,
         80,
         69
+      ]
+    },
+    {
+      "name": "voterAccount",
+      "discriminator": [
+        24,
+        202,
+        161,
+        124,
+        196,
+        184,
+        105,
+        236
       ]
     }
   ],
@@ -190,6 +263,36 @@ export type Voting = {
         223,
         237
       ]
+    },
+    {
+      "name": "voterRegistered",
+      "discriminator": [
+        184,
+        179,
+        209,
+        46,
+        125,
+        60,
+        51,
+        197
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "unexpectedSessionStatus",
+      "msg": "Unexpected session status"
+    },
+    {
+      "code": 6001,
+      "name": "adminForbiddenAsVoter",
+      "msg": "Voting session administrator can not be registered as voter"
+    },
+    {
+      "code": 6002,
+      "name": "voterAlreadyRegistered",
+      "msg": "Voter already registered"
     }
   ],
   "types": [
@@ -210,6 +313,10 @@ export type Voting = {
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
           {
             "name": "sessionId",
             "type": "u64"
@@ -310,6 +417,46 @@ export type Voting = {
                 "name": "sessionWorkflowStatus"
               }
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "voterAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "voter",
+            "type": "pubkey"
+          },
+          {
+            "name": "hasVoted",
+            "type": "bool"
+          },
+          {
+            "name": "votedProposalId",
+            "type": "u8"
+          },
+          {
+            "name": "nbProposals",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "voterRegistered",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "sessionId",
+            "type": "u64"
+          },
+          {
+            "name": "voter",
+            "type": "pubkey"
           }
         ]
       }

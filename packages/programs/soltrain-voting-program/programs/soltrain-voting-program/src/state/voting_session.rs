@@ -1,33 +1,9 @@
 use anchor_lang::prelude::*;
 
-use super::global::*;
-
-#[derive(Accounts)]
-pub struct InitSession<'info> {
-    #[account(
-        init,
-        payer = owner,
-        space = 8 + SessionAccount::INIT_SPACE,
-        seeds = [
-            SessionAccount::SEED_PREFIX.as_ref(),
-            &global_account.session_count.to_le_bytes()
-        ],
-        bump
-    )]
-    pub session_account: Account<'info, SessionAccount>,
-
-    #[account(mut, seeds = [GlobalAccount::SEED], bump)]
-    pub global_account: Account<'info, GlobalAccount>,
-
-    #[account(mut)]
-    pub owner: Signer<'info>,
-
-    pub system_program: Program<'info, System>,
-}
-
 #[account]
 #[derive(InitSpace)]
 pub struct SessionAccount {
+    pub admin: Pubkey,
     pub session_id: u64,
     #[max_len(20)]
     pub name: String,
@@ -41,7 +17,7 @@ impl SessionAccount {
     pub const SEED_PREFIX: &'static [u8; 7] = b"session";
 }
 
-#[derive(Clone, AnchorSerialize, AnchorDeserialize, InitSpace)]
+#[derive(Clone, AnchorSerialize, AnchorDeserialize, InitSpace, PartialEq)]
 pub enum SessionWorkflowStatus {
     None,
     RegisteringVoters,

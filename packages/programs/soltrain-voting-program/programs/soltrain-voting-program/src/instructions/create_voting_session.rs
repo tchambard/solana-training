@@ -1,10 +1,9 @@
 use anchor_lang::prelude::*;
 
-use crate::state::global::*;
-use crate::state::voting_session::*;
+use crate::state::{global::*, voting_session::*};
 
 #[derive(Accounts)]
-pub struct InitVotingSessionAccount<'info> {
+pub struct CreateVotingSessionContextData<'info> {
     #[account(
         init,
         payer = owner,
@@ -27,7 +26,7 @@ pub struct InitVotingSessionAccount<'info> {
 }
 
 pub fn create_voting_session(
-    ctx: Context<InitVotingSessionAccount>,
+    ctx: Context<CreateVotingSessionContextData>,
     name: String,
     description: String,
 ) -> Result<()> {
@@ -36,6 +35,7 @@ pub fn create_voting_session(
     session_account.status = SessionWorkflowStatus::RegisteringVoters;
 
     session_account.session_id = global_account.session_count;
+    session_account.admin = ctx.accounts.owner.key();
     session_account.name = name.clone();
     session_account.description = description.clone();
     session_account.proposal_count = 0;

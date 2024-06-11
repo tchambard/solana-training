@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 use crate::state::global::*;
 
 #[derive(Accounts)]
-pub struct InitGlobalAccount<'info> {
+pub struct InitGlobalContextData<'info> {
     #[account(
         init,
         payer = owner,
@@ -19,7 +19,7 @@ pub struct InitGlobalAccount<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn init_global(ctx: Context<InitGlobalAccount>) -> Result<()> {
+pub fn init_global(ctx: Context<InitGlobalContextData>) -> Result<()> {
     let global_account = &mut ctx.accounts.global_account;
     global_account.session_count = 0;
     Ok(())
