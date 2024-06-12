@@ -6,6 +6,8 @@ pub enum VotingError {
     UnexpectedSessionStatus,
     #[msg("Voting session administrator can not be registered as voter")]
     AdminForbiddenAsVoter,
+    #[msg("Forbidden as non administrator")]
+    ForbiddenAsNonAdmin,
     #[msg("Voter already registered")]
     VoterAlreadyRegistered,
 }

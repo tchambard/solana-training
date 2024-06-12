@@ -6,9 +6,14 @@ use crate::state::{voter::*, voting_session::*};
 #[derive(Accounts)]
 #[instruction(voter: Pubkey)]
 pub struct RegisterVoterContextData<'info> {
+    #[account(mut)]
+    pub admin: Signer<'info>,
+
+    pub session_account: Account<'info, SessionAccount>,
+
     #[account(
         init_if_needed,
-        payer = owner,
+        payer = admin,
         space = 8 + VoterAccount::INIT_SPACE,
         seeds = [
             VoterAccount::SEED_PREFIX.as_ref(),
@@ -18,16 +23,17 @@ pub struct RegisterVoterContextData<'info> {
         bump
     )]
     pub voter_account: Account<'info, VoterAccount>,
-    pub session_account: Account<'info, SessionAccount>,
-    #[account(mut)]
-    pub owner: Signer<'info>,
+
     pub system_program: Program<'info, System>,
 }
 
 pub fn register_voter(ctx: Context<RegisterVoterContextData>, voter: Pubkey) -> Result<()> {
-    let session_account = &mut ctx.accounts.session_account;
+    let session_account = &ctx.accounts.session_account;
     let voter_account = &mut ctx.accounts.voter_account;
 
+    if session_account.admin.key() != ctx.accounts.admin.key() {
+        return err!(VotingError::ForbiddenAsNonAdmin);
+    };
     if session_account.status != SessionWorkflowStatus::RegisteringVoters {
         return err!(VotingError::UnexpectedSessionStatus);
     };

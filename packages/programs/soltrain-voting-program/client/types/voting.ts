@@ -15,8 +15,28 @@ export type Voting = {
 	instructions: [
 		{
 			name: 'createVotingSession';
+			docs: [
+				"* Anyone can create new voting session. Session's creator becomes session administrator.\n     *\n     * @dev An event SessionCreated is emitted\n     *\n     * @param name The session name\n     * @param description The session description",
+			];
 			discriminator: [241, 56, 27, 243, 109, 166, 75, 93];
 			accounts: [
+				{
+					name: 'owner';
+					writable: true;
+					signer: true;
+				},
+				{
+					name: 'globalAccount';
+					writable: true;
+					pda: {
+						seeds: [
+							{
+								kind: 'const';
+								value: [103, 108, 111, 98, 97, 108];
+							},
+						];
+					};
+				},
 				{
 					name: 'sessionAccount';
 					writable: true;
@@ -33,23 +53,6 @@ export type Voting = {
 							},
 						];
 					};
-				},
-				{
-					name: 'globalAccount';
-					writable: true;
-					pda: {
-						seeds: [
-							{
-								kind: 'const';
-								value: [103, 108, 111, 98, 97, 108];
-							},
-						];
-					};
-				},
-				{
-					name: 'owner';
-					writable: true;
-					signer: true;
 				},
 				{
 					name: 'systemProgram';
@@ -97,8 +100,19 @@ export type Voting = {
 		},
 		{
 			name: 'registerVoter';
+			docs: [
+				'* Session administrator can register voters.\n     *\n     * @dev voters can be added only by session administrator when status is set to RegisteringVoters\n     * An event VoterRegistered is emitted\n     *\n     * @param voter The address to add into voters registry',
+			];
 			discriminator: [229, 124, 185, 99, 118, 51, 226, 6];
 			accounts: [
+				{
+					name: 'admin';
+					writable: true;
+					signer: true;
+				},
+				{
+					name: 'sessionAccount';
+				},
 				{
 					name: 'voterAccount';
 					writable: true;
@@ -121,14 +135,6 @@ export type Voting = {
 					};
 				},
 				{
-					name: 'sessionAccount';
-				},
-				{
-					name: 'owner';
-					writable: true;
-					signer: true;
-				},
-				{
 					name: 'systemProgram';
 					address: '11111111111111111111111111111111';
 				},
@@ -139,6 +145,29 @@ export type Voting = {
 					type: 'pubkey';
 				},
 			];
+		},
+		{
+			name: 'startProposalsRegistration';
+			docs: [
+				'* Administrator can close voters registration and open proposals registration.\n     *\n     * @dev Can be called only when status is set to RegisteringVoters.\n     * Two default proposals are registered at the beginning of this step: `Abstention` and `Blank`.\n     * That means a registered voter that forget to vote will be counted as `abstention` thanks to voter registration account and initialized state\n     * An event WorkflowStatusChanged is emitted\n     *\n     * @param _sessionId The session identifier',
+			];
+			discriminator: [186, 177, 117, 107, 84, 210, 40, 48];
+			accounts: [
+				{
+					name: 'admin';
+					writable: true;
+					signer: true;
+				},
+				{
+					name: 'sessionAccount';
+					writable: true;
+				},
+				{
+					name: 'systemProgram';
+					address: '11111111111111111111111111111111';
+				},
+			];
+			args: [];
 		},
 	];
 	accounts: [
@@ -182,6 +211,11 @@ export type Voting = {
 		},
 		{
 			code: 6002;
+			name: 'forbiddenAsNonAdmin';
+			msg: 'Forbidden as non administrator';
+		},
+		{
+			code: 6003;
 			name: 'voterAlreadyRegistered';
 			msg: 'Voter already registered';
 		},

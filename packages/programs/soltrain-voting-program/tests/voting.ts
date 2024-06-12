@@ -7,6 +7,27 @@ import { VotingClient } from '../client';
 
 const skipPreflight = false;
 
+interface IExpectedError {
+	code: string;
+	number: number;
+	errorMessage: string;
+	programId: string;
+}
+
+async function assertError(fn: () => Promise<any>, expected: IExpectedError): Promise<void> {
+	try {
+		await fn();
+		assert.ok(false);
+	} catch (_err) {
+		assert.isTrue(_err instanceof AnchorError);
+		const err: AnchorError = _err;
+		assert.strictEqual(err.error.errorMessage, expected.errorMessage);
+		assert.strictEqual(err.error.errorCode.code, expected.code);
+		assert.strictEqual(err.error.errorCode.number, expected.number);
+		assert.strictEqual(err.program.toString(), expected.programId);
+	}
+}
+
 describe('voting', () => {
 	const provider = anchor.AnchorProvider.env();
 	anchor.setProvider(provider);
@@ -40,27 +61,17 @@ describe('voting', () => {
 				accounts: { sessionAccountPubkey },
 			} = await client.createVotingSession(administrator.payer, name, description);
 
-			const sessionAccount =
-				await program.account.sessionAccount.fetch(sessionAccountPubkey);
+			const sessionAccount = await program.account.sessionAccount.fetch(sessionAccountPubkey);
 			assert.equal(sessionAccount.sessionId.toNumber(), expectedSessionId);
-			assert.equal(
-				sessionAccount.admin.toString(),
-				administrator.payer.publicKey.toString(),
-			);
+			assert.equal(sessionAccount.admin.toString(), administrator.payer.publicKey.toString());
 			assert.equal(sessionAccount.name, name);
 			assert.equal(sessionAccount.description, description);
 			assert.deepEqual(sessionAccount.status, { registeringVoters: {} });
 
-			const { sessionCreated, sessionWorkflowStatusChanged } =
-				await client.getTxEvents(tx);
-			assert.equal(
-				sessionWorkflowStatusChanged.sessionId.toString(),
-				expectedSessionId,
-			);
+			const { sessionCreated, sessionWorkflowStatusChanged } = await client.getTxEvents(tx);
+			assert.equal(sessionWorkflowStatusChanged.sessionId.toString(), expectedSessionId);
 			assert.deepEqual(sessionWorkflowStatusChanged.previousStatus, { none: {} });
-			assert.deepEqual(sessionWorkflowStatusChanged.currentStatus, {
-				registeringVoters: {},
-			});
+			assert.deepEqual(sessionWorkflowStatusChanged.currentStatus, { registeringVoters: {} });
 
 			assert.equal(sessionCreated.sessionId.toNumber(), expectedSessionId);
 			assert.equal(sessionCreated.name, name);
@@ -77,20 +88,15 @@ describe('voting', () => {
 				accounts: { sessionAccountPubkey },
 			} = await client.createVotingSession(batman, name, description);
 
-			const sessionAccount =
-				await program.account.sessionAccount.fetch(sessionAccountPubkey);
+			const sessionAccount = await program.account.sessionAccount.fetch(sessionAccountPubkey);
 			assert.equal(sessionAccount.sessionId.toNumber(), expectedSessionId);
 			assert.equal(sessionAccount.admin.toString(), batman.publicKey.toString());
 			assert.equal(sessionAccount.name, name);
 			assert.equal(sessionAccount.description, description);
 			assert.deepEqual(sessionAccount.status, { registeringVoters: {} });
 
-			const { sessionCreated, sessionWorkflowStatusChanged } =
-				await client.getTxEvents(tx);
-			assert.equal(
-				sessionWorkflowStatusChanged.sessionId.toString(),
-				expectedSessionId,
-			);
+			const { sessionCreated, sessionWorkflowStatusChanged } = await client.getTxEvents(tx);
+			assert.equal(sessionWorkflowStatusChanged.sessionId.toString(), expectedSessionId);
 			assert.deepEqual(sessionWorkflowStatusChanged.previousStatus, { none: {} });
 			assert.deepEqual(sessionWorkflowStatusChanged.currentStatus, {
 				registeringVoters: {},
@@ -108,13 +114,8 @@ describe('voting', () => {
 		beforeEach(async () => {
 			const {
 				accounts: { sessionAccountPubkey },
-			} = await client.createVotingSession(
-				administrator.payer,
-				'Super Heroes',
-				'A vote for every superheroes to find who will rule the world',
-			);
-			const session =
-				await program.account.sessionAccount.fetch(sessionAccountPubkey);
+			} = await client.createVotingSession(administrator.payer, 'Super Heroes', 'A vote for every superheroes to find who will rule the world');
+			const session = await program.account.sessionAccount.fetch(sessionAccountPubkey);
 			sessionId = session.sessionId;
 
 			// register batman as voter
@@ -131,10 +132,7 @@ describe('voting', () => {
 					const { tx } = await client.createVotingSession(batman, name, description);
 					const { sessionCreated } = await client.getTxEvents(tx);
 
-					assert.equal(
-						sessionCreated.sessionId.toNumber(),
-						expectedSessionId.toNumber(),
-					);
+					assert.equal(sessionCreated.sessionId.toNumber(), expectedSessionId.toNumber());
 					assert.equal(sessionCreated.name, name);
 					assert.equal(sessionCreated.description, description);
 				});
@@ -145,14 +143,9 @@ describe('voting', () => {
 					const {
 						tx,
 						accounts: { voterAccountPubkey },
-					} = await client.registerVoter(
-						administrator.payer,
-						sessionId,
-						superman.publicKey,
-					);
+					} = await client.registerVoter(administrator.payer, sessionId, superman.publicKey);
 
-					const voterAccount =
-						await program.account.voterAccount.fetch(voterAccountPubkey);
+					const voterAccount = await program.account.voterAccount.fetch(voterAccountPubkey);
 					assert.isFalse(voterAccount.hasVoted);
 					assert.equal(voterAccount.nbProposals, 0);
 					assert.equal(voterAccount.votedProposalId, 0);
@@ -160,49 +153,44 @@ describe('voting', () => {
 
 					const { voterRegistered } = await client.getTxEvents(tx);
 					assert.equal(voterRegistered.sessionId.toNumber(), sessionId.toNumber());
-					assert.equal(
-						voterRegistered.voter.toString(),
-						superman.publicKey.toString(),
-					);
+					assert.equal(voterRegistered.voter.toString(), superman.publicKey.toString());
+				});
+
+				it('> should fail when payer is not session administrator', async () => {
+					await assertError(() => client.registerVoter(batman, sessionId, batman.publicKey), {
+						number: 6002,
+						code: 'ForbiddenAsNonAdmin',
+						errorMessage: 'Forbidden as non administrator',
+						programId: program.programId.toString(),
+					});
 				});
 
 				it('> should fail when voter address is already registered', async () => {
-					try {
-						await client.registerVoter(
-							administrator.payer,
-							sessionId,
-							batman.publicKey,
-						);
-						assert.ok(false);
-					} catch (_err) {
-						assert.isTrue(_err instanceof AnchorError);
-						const err: AnchorError = _err;
-						assert.match(err.toString(), /VoterAlreadyRegistered/);
-						assert.strictEqual(err.error.errorMessage, 'Voter already registered');
-						assert.strictEqual(err.error.errorCode.number, 6002);
-						assert.strictEqual(err.program.toString(), program.programId.toString());
-					}
+					await assertError(() => client.registerVoter(administrator.payer, sessionId, batman.publicKey), {
+						number: 6003,
+						code: 'VoterAlreadyRegistered',
+						errorMessage: 'Voter already registered',
+						programId: program.programId.toString(),
+					});
 				});
 
 				it('> should fail when voter address is owner contract address', async () => {
-					try {
-						await client.registerVoter(
-							administrator.payer,
-							sessionId,
-							administrator.publicKey,
-						);
-						assert.ok(false);
-					} catch (_err) {
-						assert.isTrue(_err instanceof AnchorError);
-						const err: AnchorError = _err;
-						assert.match(err.toString(), /AdminForbiddenAsVoter/);
-						assert.strictEqual(
-							err.error.errorMessage,
-							'Voting session administrator can not be registered as voter',
-						);
-						assert.strictEqual(err.error.errorCode.number, 6001);
-						assert.strictEqual(err.program.toString(), program.programId.toString());
-					}
+					await assertError(() => client.registerVoter(administrator.payer, sessionId, administrator.publicKey), {
+						number: 6001,
+						code: 'AdminForbiddenAsVoter',
+						errorMessage: 'Voting session administrator can not be registered as voter',
+						programId: program.programId.toString(),
+					});
+				});
+			});
+
+			describe('> startProposalsRegistration', () => {
+				it('> should succeed when called with non administrator account', async () => {
+					const { tx } = await client.startProposalsRegistration(administrator.payer, sessionId);
+					const { sessionWorkflowStatusChanged } = await client.getTxEvents(tx);
+					assert.equal(sessionWorkflowStatusChanged.sessionId.toString(), sessionId.toString());
+					assert.deepEqual(sessionWorkflowStatusChanged.previousStatus, { registeringVoters: {} });
+					assert.deepEqual(sessionWorkflowStatusChanged.currentStatus, { proposalsRegistrationStarted: {} });
 				});
 			});
 		});

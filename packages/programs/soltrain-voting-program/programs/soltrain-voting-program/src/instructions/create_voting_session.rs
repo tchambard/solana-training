@@ -4,6 +4,12 @@ use crate::state::{global::*, voting_session::*};
 
 #[derive(Accounts)]
 pub struct CreateVotingSessionContextData<'info> {
+    #[account(mut)]
+    pub owner: Signer<'info>,
+
+    #[account(mut, seeds = [GlobalAccount::SEED.as_ref().as_ref()], bump)]
+    pub global_account: Account<'info, GlobalAccount>,
+
     #[account(
         init,
         payer = owner,
@@ -15,12 +21,6 @@ pub struct CreateVotingSessionContextData<'info> {
         bump
     )]
     pub session_account: Account<'info, SessionAccount>,
-
-    #[account(mut, seeds = [GlobalAccount::SEED.as_ref().as_ref()], bump)]
-    pub global_account: Account<'info, GlobalAccount>,
-
-    #[account(mut)]
-    pub owner: Signer<'info>,
 
     pub system_program: Program<'info, System>,
 }
