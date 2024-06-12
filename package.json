@@ -3,6 +3,7 @@
     "version": "1.0.0",
     "scripts": {
         "lint-all": "yarn workspaces foreach -Apt run lint",
+        "lint-fix-all": "yarn workspaces foreach -Apt run lint-fix",
         "clean-all": "yarn workspaces foreach -Apt run clean",
         "compile-all": "yarn workspaces foreach -Apt run compile",
         "clean-compile-all": "yarn workspaces foreach -Apt run clean-compile",
@@ -18,7 +19,8 @@
         "g:mocha": "cd $INIT_CWD && mocha",
         "g:ts-mocha": "cd $INIT_CWD && ts-mocha",
         "g:prettier": "cd $INIT_CWD && prettier \"**/*.{js,jsx,ts,tsx}\" --check",
-        "g:prettier-fix": "cd $INIT_CWD && prettier \"**/*.{js,jsx,ts,tsx}\" -w"
+        "g:prettier-fix": "cd $INIT_CWD && prettier \"**/*.{js,jsx,ts,tsx}\" -w",
+        "prepare": "husky"
     },
     "devDependencies": {
         "@types/chai": "^4.3.16",
@@ -30,6 +32,7 @@
         "@yarnpkg/core": "^4.0.5",
         "chai": "^4.4.1",
         "chai-as-promised": "^7.1.2",
+        "husky": "^9.0.11",
         "nyc": "^15.1.0",
         "prettier": "^3.2.5",
         "rimraf": "^5.0.7",

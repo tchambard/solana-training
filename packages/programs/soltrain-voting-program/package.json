@@ -3,8 +3,7 @@
     "scripts": {
         "compile": "anchor-docker build && yarn run lint-fix",
         "lint": "yarn run g:prettier",
-        "lint-fix": "yarn run g:prettier-fix",
-        "test": "anchor-docker test"
+        "lint-fix": "yarn run g:prettier-fix"
     },
     "dependencies": {
         "@coral-xyz/anchor": "^0.30.0",
