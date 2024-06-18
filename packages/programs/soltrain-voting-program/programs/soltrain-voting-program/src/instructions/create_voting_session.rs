@@ -7,7 +7,7 @@ pub struct CreateVotingSessionContextData<'info> {
     #[account(mut)]
     pub owner: Signer<'info>,
 
-    #[account(mut, seeds = [GlobalAccount::SEED.as_ref().as_ref()], bump)]
+    #[account(mut)]
     pub global_account: Account<'info, GlobalAccount>,
 
     #[account(
@@ -16,7 +16,7 @@ pub struct CreateVotingSessionContextData<'info> {
         space = 8 + SessionAccount::INIT_SPACE,
         seeds = [
             SessionAccount::SEED_PREFIX.as_ref(),
-            &global_account.session_count.to_le_bytes()
+            global_account.session_count.to_le_bytes().as_ref()
         ],
         bump
     )]
@@ -38,7 +38,8 @@ pub fn create_voting_session(
     session_account.admin = ctx.accounts.owner.key();
     session_account.name = name.clone();
     session_account.description = description.clone();
-    session_account.proposal_count = 0;
+    session_account.proposals_count = 1; // 0 is abstention vote
+    session_account.voters_count = 0;
 
     global_account.session_count += 1;
 

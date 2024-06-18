@@ -1,4 +1,10 @@
 pub mod create_voting_session;
 pub mod global;
+pub mod register_proposal;
 pub mod register_voter;
 pub mod start_proposals_registration;
+pub mod start_voting_session;
+pub mod stop_proposals_registration;
+pub mod stop_voting_session;
+pub mod tally_votes;
+pub mod vote;

@@ -9,6 +9,7 @@ pub struct RegisterVoterContextData<'info> {
     #[account(mut)]
     pub admin: Signer<'info>,
 
+    #[account(mut)]
     pub session_account: Account<'info, SessionAccount>,
 
     #[account(
@@ -28,23 +29,31 @@ pub struct RegisterVoterContextData<'info> {
 }
 
 pub fn register_voter(ctx: Context<RegisterVoterContextData>, voter: Pubkey) -> Result<()> {
-    let session_account = &ctx.accounts.session_account;
+    let session_account = &mut ctx.accounts.session_account;
     let voter_account = &mut ctx.accounts.voter_account;
 
-    if session_account.admin.key() != ctx.accounts.admin.key() {
-        return err!(VotingError::ForbiddenAsNonAdmin);
-    };
-    if session_account.status != SessionWorkflowStatus::RegisteringVoters {
-        return err!(VotingError::UnexpectedSessionStatus);
-    };
-    if session_account.admin.key() == voter.key() {
-        return err!(VotingError::AdminForbiddenAsVoter);
-    };
-    if voter_account.voter.key() == voter.key() {
-        return err!(VotingError::VoterAlreadyRegistered);
-    };
+    require!(
+        session_account.admin.key() == ctx.accounts.admin.key(),
+        VotingError::ForbiddenAsNonAdmin
+    );
+    require!(
+        session_account.status == SessionWorkflowStatus::RegisteringVoters,
+        VotingError::UnexpectedSessionStatus
+    );
+    require!(
+        session_account.admin.key() != voter.key(),
+        VotingError::AdminForbiddenAsVoter
+    );
+    require!(
+        voter_account.voter.key() != voter.key(),
+        VotingError::VoterAlreadyRegistered
+    );
 
+    session_account.voters_count += 1;
+
+    voter_account.session_id = session_account.session_id;
     voter_account.voter = voter;
+    voter_account.voter_id = session_account.voters_count;
     voter_account.voted_proposal_id = 0;
     voter_account.nb_proposals = 0;
 

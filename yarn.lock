@@ -10211,6 +10211,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"js-sha256@npm:^0.11.0":
+  version: 0.11.0
+  resolution: "js-sha256@npm:0.11.0"
+  checksum: 10/3adc208452302838136f1464ea331bae3b4d4c95afa9314fa6446d755059ff37114cb209fe9ed166c460ffe720d4875aa955e4f4c7aacab2d99858dd3e008b93
+  languageName: node
+  linkType: hard
+
 "js-tokens@npm:^3.0.0 || ^4.0.0, js-tokens@npm:^4.0.0":
   version: 4.0.0
   resolution: "js-tokens@npm:4.0.0"
@@ -13414,6 +13421,7 @@ __metadata:
     "@types/mocha": "npm:^10.0.6"
     "@types/shelljs": "npm:^0"
     chai: "npm:^4.4.1"
+    js-sha256: "npm:^0.11.0"
     mocha: "npm:^10.4.0"
     shelljs: "npm:^0.8.5"
     ts-mocha: "npm:^10.0.0"
