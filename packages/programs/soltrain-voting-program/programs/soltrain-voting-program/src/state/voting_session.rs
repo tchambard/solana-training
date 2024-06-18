@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use anchor_lang::prelude::*;
 
 #[account]

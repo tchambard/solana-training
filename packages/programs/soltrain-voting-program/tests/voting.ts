@@ -19,7 +19,7 @@ async function assertError(fn: () => Promise<any>, expected: IExpectedError): Pr
 		await fn();
 		assert.ok(false);
 	} catch (_err) {
-		console.log('_err :>> ', _err);
+		// console.log('_err :>> ', _err);
 		assert.isTrue(_err instanceof AnchorError);
 		const err: AnchorError = _err;
 		assert.strictEqual(err.error.errorMessage, expected.errorMessage);
