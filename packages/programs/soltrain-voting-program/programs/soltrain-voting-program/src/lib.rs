@@ -10,7 +10,7 @@ pub mod errors;
 pub mod instructions;
 pub mod state;
 
-declare_id!("4PGnHfbudx56T214YReyJ25n3UCfLvWG5icWocESzH6n");
+declare_id!("8H7dfzoBA4kJjokGqDgQ4VsDeBqg7SuMWFUWowdvRQda");
 
 #[program]
 pub mod voting {

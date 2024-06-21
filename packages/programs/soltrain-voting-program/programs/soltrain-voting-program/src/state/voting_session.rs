@@ -2,19 +2,18 @@ use anchor_lang::prelude::*;
 
 #[account]
 #[derive(InitSpace)]
-pub struct SessionAccount {
-    pub admin: Pubkey,
-    pub session_id: u64,
+pub struct SessionAccount { // 8 discriminator
+    pub session_id: u64, // 8
     #[max_len(20)]
-    pub name: String,
+    pub name: String, // 20
     #[max_len(80)]
-    pub description: String,
-    pub status: SessionWorkflowStatus,
-
-    pub voters_count: u32,
-    pub proposals_count: u8,
+    pub description: String, // 80
+    pub status: SessionWorkflowStatus, // 1
+    pub admin: Pubkey, // 32
+    pub voters_count: u32, // 4
+    pub proposals_count: u8, // 1
     #[max_len(10)]
-    pub winning_proposal_id: Vec<u8>,
+    pub winning_proposal_id: Vec<u8>, // 10
 }
 
 impl SessionAccount {

@@ -6,7 +6,7 @@ skip-lint = false
 seeds = true
 
 [programs.localnet]
-voting = "4PGnHfbudx56T214YReyJ25n3UCfLvWG5icWocESzH6n"
+voting = "8H7dfzoBA4kJjokGqDgQ4VsDeBqg7SuMWFUWowdvRQda"
 
 [registry]
 url = "https://api.apr.dev"
