@@ -1,49 +1,33 @@
-import { AccountClient, Address, BN, BorshCoder, EventParser, Program } from '@coral-xyz/anchor';
-import { Connection, Keypair, PublicKey } from '@solana/web3.js';
+import { BN, Program } from '@coral-xyz/anchor';
+import { PublicKey, SendOptions } from '@solana/web3.js';
 import { Voting } from './types/voting';
-import * as _ from 'lodash';
 import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 import { sha256 } from 'js-sha256';
+import { Wallet } from '@coral-xyz/anchor/dist/cjs/provider';
+import { AbstractSolanaClient, ITransactionResult } from './AbstractSolanaClient';
 
-export interface IVotingClientOptions {
-	skipPreflight?: boolean;
-}
-
-export interface ITransactionResult {
-	tx: string;
-	accounts: NodeJS.Dict<PublicKey>;
-}
-
-export class VotingClient {
-	public readonly program: Program<Voting>;
-	public readonly connection: Connection;
+export class VotingClient extends AbstractSolanaClient {
 	public readonly globalAccountPubkey: PublicKey;
 
-	private readonly options: IVotingClientOptions;
-
-	constructor(program: Program<Voting>, options?: IVotingClientOptions) {
-		this.program = program;
-		this.connection = program.provider.connection;
+	constructor(program: Program<Voting>, options?: SendOptions) {
+		super(program, options);
 		this.globalAccountPubkey = PublicKey.findProgramAddressSync([Buffer.from('global')], program.programId)[0];
-
-		this.options = {
-			skipPreflight: options?.skipPreflight ?? false,
-		};
 	}
 
-	public async initGlobal(payer: Keypair) {
-		await this.program.methods
+	public async initGlobal(payer: Wallet) {
+		const tx = await this.program.methods
 			.initGlobal()
 			.accountsPartial({
 				owner: payer.publicKey,
 				globalAccount: this.globalAccountPubkey,
 			})
-			.rpc({ skipPreflight: this.options.skipPreflight, commitment: 'confirmed' });
+			.transaction();
+
+		return this.signAndSendTransaction(payer, tx);
 	}
 
-	public async createVotingSession(payer: Keypair, name: string, description: string): Promise<ITransactionResult> {
-		const sessionId = (await this.getNextSessionId()) || new anchor.BN(0);
-
+	public async createVotingSession(payer: Wallet, name: string, description: string): Promise<ITransactionResult> {
+		const sessionId = (await this.getNextSessionId()) || new BN(0);
 		const sessionAccountPubkey = this.findSessionAccountAddress(sessionId);
 
 		const tx = await this.program.methods
@@ -53,18 +37,14 @@ export class VotingClient {
 				sessionAccount: sessionAccountPubkey,
 				globalAccount: this.globalAccountPubkey,
 			})
-			.signers([payer])
-			.rpc({ skipPreflight: this.options.skipPreflight, commitment: 'confirmed' });
+			.transaction();
 
-		return {
-			tx,
-			accounts: {
-				sessionAccountPubkey,
-			},
-		};
+		return this.signAndSendTransaction(payer, tx, {
+			sessionAccountPubkey,
+		});
 	}
 
-	public async registerVoter(payer: Keypair, sessionId: BN, voter: PublicKey): Promise<ITransactionResult> {
+	public async registerVoter(payer: Wallet, sessionId: BN, voter: PublicKey): Promise<ITransactionResult> {
 		const sessionAccountPubkey = this.findSessionAccountAddress(sessionId);
 		const voterAccountPubkey = this.findVoterAccountAddress(sessionId, voter);
 
@@ -75,19 +55,15 @@ export class VotingClient {
 				sessionAccount: sessionAccountPubkey,
 				voterAccount: voterAccountPubkey,
 			})
-			.signers([payer])
-			.rpc({ skipPreflight: this.options.skipPreflight, commitment: 'confirmed' });
+			.transaction();
 
-		return {
-			tx,
-			accounts: {
-				sessionAccountPubkey,
-				voterAccountPubkey,
-			},
-		};
+		return this.signAndSendTransaction(payer, tx, {
+			sessionAccountPubkey,
+			voterAccountPubkey,
+		});
 	}
 
-	public async startProposalsRegistration(payer: Keypair, sessionId: BN): Promise<ITransactionResult> {
+	public async startProposalsRegistration(payer: Wallet, sessionId: BN): Promise<ITransactionResult> {
 		const sessionAccountPubkey = this.findSessionAccountAddress(sessionId);
 		const blankProposalAccountPubkey = this.findProposalAccountAddress(sessionId, 1);
 
@@ -98,19 +74,15 @@ export class VotingClient {
 				sessionAccount: sessionAccountPubkey,
 				blankProposalAccount: blankProposalAccountPubkey,
 			})
-			.signers([payer])
-			.rpc({ skipPreflight: this.options.skipPreflight, commitment: 'confirmed' });
+			.transaction();
 
-		return {
-			tx,
-			accounts: {
-				sessionAccountPubkey,
-				blankProposalAccountPubkey,
-			},
-		};
+		return this.signAndSendTransaction(payer, tx, {
+			sessionAccountPubkey,
+			blankProposalAccountPubkey,
+		});
 	}
 
-	public async stopProposalsRegistration(payer: Keypair, sessionId: BN): Promise<ITransactionResult> {
+	public async stopProposalsRegistration(payer: Wallet, sessionId: BN): Promise<ITransactionResult> {
 		const sessionAccountPubkey = this.findSessionAccountAddress(sessionId);
 
 		const tx = await this.program.methods
@@ -119,18 +91,14 @@ export class VotingClient {
 				admin: payer.publicKey,
 				sessionAccount: sessionAccountPubkey,
 			})
-			.signers([payer])
-			.rpc({ skipPreflight: this.options.skipPreflight, commitment: 'confirmed' });
+			.transaction();
 
-		return {
-			tx,
-			accounts: {
-				sessionAccountPubkey,
-			},
-		};
+		return this.signAndSendTransaction(payer, tx, {
+			sessionAccountPubkey,
+		});
 	}
 
-	public async startVotingSession(payer: Keypair, sessionId: BN): Promise<ITransactionResult> {
+	public async startVotingSession(payer: Wallet, sessionId: BN): Promise<ITransactionResult> {
 		const sessionAccountPubkey = this.findSessionAccountAddress(sessionId);
 
 		const tx = await this.program.methods
@@ -139,18 +107,14 @@ export class VotingClient {
 				admin: payer.publicKey,
 				sessionAccount: sessionAccountPubkey,
 			})
-			.signers([payer])
-			.rpc({ skipPreflight: this.options.skipPreflight, commitment: 'confirmed' });
+			.transaction();
 
-		return {
-			tx,
-			accounts: {
-				sessionAccountPubkey,
-			},
-		};
+		return this.signAndSendTransaction(payer, tx, {
+			sessionAccountPubkey,
+		});
 	}
 
-	public async stopVotingSession(payer: Keypair, sessionId: BN): Promise<ITransactionResult> {
+	public async stopVotingSession(payer: Wallet, sessionId: BN): Promise<ITransactionResult> {
 		const sessionAccountPubkey = this.findSessionAccountAddress(sessionId);
 
 		const tx = await this.program.methods
@@ -159,18 +123,14 @@ export class VotingClient {
 				admin: payer.publicKey,
 				sessionAccount: sessionAccountPubkey,
 			})
-			.signers([payer])
-			.rpc({ skipPreflight: this.options.skipPreflight, commitment: 'confirmed' });
+			.transaction();
 
-		return {
-			tx,
-			accounts: {
-				sessionAccountPubkey,
-			},
-		};
+		return this.signAndSendTransaction(payer, tx, {
+			sessionAccountPubkey,
+		});
 	}
 
-	public async registerProposal(payer: Keypair, sessionId: BN, description: string): Promise<ITransactionResult> {
+	public async registerProposal(payer: Wallet, sessionId: BN, description: string): Promise<ITransactionResult> {
 		const sessionAccountPubkey = this.findSessionAccountAddress(sessionId);
 		const voterAccountPubkey = this.findVoterAccountAddress(sessionId, payer.publicKey);
 
@@ -185,20 +145,16 @@ export class VotingClient {
 				voterAccount: voterAccountPubkey,
 				proposalAccount: proposalAccountPubkey,
 			})
-			.signers([payer])
-			.rpc({ skipPreflight: this.options.skipPreflight, commitment: 'confirmed' });
+			.transaction();
 
-		return {
-			tx,
-			accounts: {
-				sessionAccountPubkey,
-				proposalAccountPubkey,
-				voterAccountPubkey,
-			},
-		};
+		return this.signAndSendTransaction(payer, tx, {
+			sessionAccountPubkey,
+			proposalAccountPubkey,
+			voterAccountPubkey,
+		});
 	}
 
-	public async vote(payer: Keypair, sessionId: BN, proposalId: number): Promise<ITransactionResult> {
+	public async vote(payer: Wallet, sessionId: BN, proposalId: number): Promise<ITransactionResult> {
 		const sessionAccountPubkey = this.findSessionAccountAddress(sessionId);
 		const voterAccountPubkey = this.findVoterAccountAddress(sessionId, payer.publicKey);
 		const proposalAccountPubkey = this.findProposalAccountAddress(sessionId, proposalId);
@@ -211,20 +167,16 @@ export class VotingClient {
 				voterAccount: voterAccountPubkey,
 				proposalAccount: proposalAccountPubkey,
 			})
-			.signers([payer])
-			.rpc({ skipPreflight: this.options.skipPreflight, commitment: 'confirmed' });
+			.transaction();
 
-		return {
-			tx,
-			accounts: {
-				sessionAccountPubkey,
-				proposalAccountPubkey,
-				voterAccountPubkey,
-			},
-		};
+		return this.signAndSendTransaction(payer, tx, {
+			sessionAccountPubkey,
+			proposalAccountPubkey,
+			voterAccountPubkey,
+		});
 	}
 
-	public async tallyVotes(payer: Keypair, sessionId: BN): Promise<ITransactionResult> {
+	public async tallyVotes(payer: Wallet, sessionId: BN): Promise<ITransactionResult> {
 		const sessionAccountPubkey = this.findSessionAccountAddress(sessionId);
 
 		const session = await this.getSession(sessionAccountPubkey);
@@ -241,15 +193,11 @@ export class VotingClient {
 				sessionAccount: sessionAccountPubkey,
 			})
 			.remainingAccounts([...proposalsAccounts.map((pubkey) => ({ pubkey, isWritable: false, isSigner: false }))])
-			.signers([payer])
-			.rpc({ skipPreflight: this.options.skipPreflight, commitment: 'confirmed' });
+			.transaction();
 
-		return {
-			tx,
-			accounts: {
-				sessionAccountPubkey,
-			},
-		};
+		return this.signAndSendTransaction(payer, tx, {
+			sessionAccountPubkey,
+		});
 	}
 
 	public async listVoters(sessionId: BN, paginationOptions?: { page: number; perPage: number }) {
@@ -266,7 +214,7 @@ export class VotingClient {
 			.sort((a, b) => a.voterId - b.voterId)
 			.map((account) => account.pubkey);
 
-		return this.getPage(this.program.account.voterAccount, addresses, paginationOptions.page, paginationOptions.perPage);
+		return this.getPage(this.program.account.voterAccount, addresses, paginationOptions?.page, paginationOptions?.perPage);
 	}
 
 	public async listProposals(sessionId: BN, paginationOptions?: { page: number; perPage: number }) {
@@ -283,7 +231,7 @@ export class VotingClient {
 			.sort((a, b) => a.proposalId - b.proposalId)
 			.map((account) => account.pubkey);
 
-		return this.getPage(this.program.account.proposalAccount, addresses, paginationOptions.page, paginationOptions.perPage);
+		return this.getPage(this.program.account.proposalAccount, addresses, paginationOptions?.page, paginationOptions?.perPage);
 	}
 
 	public async getNextSessionId(): Promise<BN> {
@@ -302,22 +250,6 @@ export class VotingClient {
 		return this.program.account.proposalAccount.fetch(proposalAccountPubkey);
 	}
 
-	public async getTxEvents(tx: string): Promise<NodeJS.Dict<any>> {
-		const txDetails = await this.connection.getTransaction(tx, {
-			maxSupportedTransactionVersion: 0,
-			commitment: 'confirmed',
-		});
-
-		const eventParser = new EventParser(this.program.programId, new BorshCoder(this.program.idl));
-		const events = eventParser.parseLogs(txDetails.meta.logMessages);
-		// console.log('events :>> ', txDetails.meta);
-		const result: NodeJS.Dict<object> = {};
-		for (let event of events) {
-			result[event.name] = event.data;
-		}
-		return result;
-	}
-
 	private findSessionAccountAddress(sessionId: BN): PublicKey {
 		const [sessionAccountPubkey] = PublicKey.findProgramAddressSync([Buffer.from('session'), sessionId.toBuffer('le', 8)], this.program.programId);
 		return sessionAccountPubkey;
@@ -331,13 +263,5 @@ export class VotingClient {
 	private findProposalAccountAddress(sessionId: BN, proposalId: number): PublicKey {
 		const [sessionAccountPubkey] = PublicKey.findProgramAddressSync([Buffer.from('proposal'), sessionId.toBuffer('le', 8), Buffer.from([proposalId])], this.program.programId);
 		return sessionAccountPubkey;
-	}
-
-	private async getPage(account: any, addresses: Address[], page: number, perPage: number) {
-		const paginatedPublicKeys = addresses.slice((page - 1) * perPage, page * perPage);
-		if (paginatedPublicKeys.length === 0) {
-			return [];
-		}
-		return account.fetchMultiple(paginatedPublicKeys);
 	}
 }

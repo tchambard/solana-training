@@ -1,10 +1,14 @@
 {
     "name": "soltrain-voting-program",
+    "types": "index.d.ts",
+    "main": "index.js",
     "scripts": {
         "compile": "anchor-docker build && yarn run lint-fix",
         "lint": "yarn run g:prettier",
         "lint-fix": "yarn run g:prettier-fix",
-        "test": "anchor-docker test"
+        "test": "anchor-docker test",
+        "compile-ts": "yarn run g:tsc -p tsconfig.build.json",
+        "compile-ts-watch": "yarn run g:tsc -w -p tsconfig.build.json"
     },
     "dependencies": {
         "@coral-xyz/anchor": "^0.30.0",

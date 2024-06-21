@@ -1,11 +1,9 @@
 import * as anchor from '@coral-xyz/anchor';
-import { AnchorError, BN, Program } from '@coral-xyz/anchor';
+import { AnchorError, BN, Program, Wallet } from '@coral-xyz/anchor';
 import { assert } from 'chai';
 
 import { Voting } from '../client/types/voting';
 import { VotingClient } from '../client';
-
-const skipPreflight = false;
 
 interface IExpectedError {
 	code: string;
@@ -19,9 +17,9 @@ async function assertError(fn: () => Promise<any>, expected: IExpectedError): Pr
 		await fn();
 		assert.ok(false);
 	} catch (_err) {
-		// console.log('_err :>> ', _err);
-		assert.isTrue(_err instanceof AnchorError);
-		const err: AnchorError = _err;
+		assert.isArray(_err.logs);
+		const err = AnchorError.parse(_err.logs);
+		// console.log('err :>> ', err);
 		assert.strictEqual(err.error.errorMessage, expected.errorMessage);
 		assert.strictEqual(err.error.errorCode.code, expected.code);
 		assert.strictEqual(err.error.errorCode.number, expected.number);
@@ -37,15 +35,15 @@ describe('voting', () => {
 	const connection = program.provider.connection;
 
 	const administrator = provider.wallet as anchor.Wallet;
-	const batman = anchor.web3.Keypair.generate();
-	const superman = anchor.web3.Keypair.generate();
+	const batman = new Wallet(anchor.web3.Keypair.generate());
+	const superman = new Wallet(anchor.web3.Keypair.generate());
 
-	const client = new VotingClient(program, { skipPreflight });
+	const client = new VotingClient(program, { skipPreflight: false, preflightCommitment: 'confirmed' });
 	let sessionId: BN;
 
 	before(async () => {
 		// initialize program global account
-		await client.initGlobal(administrator.payer);
+		await client.initGlobal(administrator);
 
 		// request airdrop for voting actors
 		await connection.requestAirdrop(batman.publicKey, 1000000000);
@@ -58,12 +56,8 @@ describe('voting', () => {
 			const name = 'Session A';
 			const description = 'New session A';
 
-			const {
-				tx,
-				accounts: { sessionAccountPubkey },
-			} = await client.createVotingSession(administrator.payer, name, description);
-
-			const session = await client.getSession(sessionAccountPubkey);
+			const { accounts, events } = await client.createVotingSession(administrator, name, description);
+			const session = await client.getSession(accounts.sessionAccountPubkey);
 			assert.equal(session.sessionId.toNumber(), expectedSessionId);
 			assert.equal(session.admin.toString(), administrator.payer.publicKey.toString());
 			assert.equal(session.name, name);
@@ -72,7 +66,7 @@ describe('voting', () => {
 			assert.equal(session.votersCount, 0);
 			assert.equal(session.proposalsCount, 1); // abstention
 
-			const { sessionCreated, sessionWorkflowStatusChanged } = await client.getTxEvents(tx);
+			const { sessionCreated, sessionWorkflowStatusChanged } = events;
 			assert.equal(sessionWorkflowStatusChanged.sessionId.toString(), expectedSessionId);
 			assert.deepEqual(sessionWorkflowStatusChanged.previousStatus, { none: {} });
 			assert.deepEqual(sessionWorkflowStatusChanged.currentStatus, { registeringVoters: {} });
@@ -88,7 +82,7 @@ describe('voting', () => {
 			const description = 'New session B';
 
 			const {
-				tx,
+				events,
 				accounts: { sessionAccountPubkey },
 			} = await client.createVotingSession(batman, name, description);
 
@@ -101,7 +95,7 @@ describe('voting', () => {
 			assert.equal(session.votersCount, 0);
 			assert.equal(session.proposalsCount, 1);
 
-			const { sessionCreated, sessionWorkflowStatusChanged } = await client.getTxEvents(tx);
+			const { sessionCreated, sessionWorkflowStatusChanged } = events;
 			assert.equal(sessionWorkflowStatusChanged.sessionId.toString(), expectedSessionId);
 			assert.deepEqual(sessionWorkflowStatusChanged.previousStatus, { none: {} });
 			assert.deepEqual(sessionWorkflowStatusChanged.currentStatus, {
@@ -118,12 +112,12 @@ describe('voting', () => {
 		beforeEach(async () => {
 			const {
 				accounts: { sessionAccountPubkey },
-			} = await client.createVotingSession(administrator.payer, 'Super Heroes', 'A vote for every superheroes to find who will rule the world');
+			} = await client.createVotingSession(administrator, 'Super Heroes', 'A vote for every superheroes to find who will rule the world');
 			const session = await client.getSession(sessionAccountPubkey);
 			sessionId = session.sessionId;
 
 			// register batman as voter
-			await client.registerVoter(administrator.payer, sessionId, batman.publicKey);
+			await client.registerVoter(administrator, sessionId, batman.publicKey);
 		});
 
 		context('## voting status is RegisteringVoters', () => {
@@ -133,8 +127,8 @@ describe('voting', () => {
 					const name = 'New Session';
 					const description = 'New session Z';
 
-					const { tx } = await client.createVotingSession(batman, name, description);
-					const { sessionCreated } = await client.getTxEvents(tx);
+					const { events } = await client.createVotingSession(batman, name, description);
+					const { sessionCreated } = events;
 
 					assert.equal(sessionCreated.sessionId.toNumber(), expectedSessionId.toNumber());
 					assert.equal(sessionCreated.name, name);
@@ -145,9 +139,9 @@ describe('voting', () => {
 			describe('> registerVoter', () => {
 				it('> should succeed when called with voting session administrator', async () => {
 					const {
-						tx,
+						events,
 						accounts: { sessionAccountPubkey, voterAccountPubkey },
-					} = await client.registerVoter(administrator.payer, sessionId, superman.publicKey);
+					} = await client.registerVoter(administrator, sessionId, superman.publicKey);
 
 					const voter = await client.getVoter(voterAccountPubkey);
 					assert.isFalse(voter.hasVoted);
@@ -155,7 +149,7 @@ describe('voting', () => {
 					assert.equal(voter.votedProposalId, 0);
 					assert.equal(voter.voter.toString(), superman.publicKey.toString());
 
-					const { voterRegistered } = await client.getTxEvents(tx);
+					const { voterRegistered } = events;
 					assert.equal(voterRegistered.sessionId.toNumber(), sessionId.toNumber());
 					assert.equal(voterRegistered.voter.toString(), superman.publicKey.toString());
 
@@ -173,7 +167,7 @@ describe('voting', () => {
 				});
 
 				it('> should fail when voter address is already registered', async () => {
-					await assertError(() => client.registerVoter(administrator.payer, sessionId, batman.publicKey), {
+					await assertError(() => client.registerVoter(administrator, sessionId, batman.publicKey), {
 						number: 6004,
 						code: 'VoterAlreadyRegistered',
 						errorMessage: 'Voter already registered',
@@ -182,7 +176,7 @@ describe('voting', () => {
 				});
 
 				it('> should fail when voter address is voting session administrator', async () => {
-					await assertError(() => client.registerVoter(administrator.payer, sessionId, administrator.publicKey), {
+					await assertError(() => client.registerVoter(administrator, sessionId, administrator.publicKey), {
 						number: 6001,
 						code: 'AdminForbiddenAsVoter',
 						errorMessage: 'Voting session administrator can not be registered as voter',
@@ -194,9 +188,9 @@ describe('voting', () => {
 			describe('> startProposalsRegistration', () => {
 				it('> should succeed when called with non administrator account', async () => {
 					const {
-						tx,
+						events,
 						accounts: { blankProposalAccountPubkey, sessionAccountPubkey },
-					} = await client.startProposalsRegistration(administrator.payer, sessionId);
+					} = await client.startProposalsRegistration(administrator, sessionId);
 
 					const proposal = await client.getProposal(blankProposalAccountPubkey);
 					assert.equal(proposal.proposalId, 1);
@@ -208,7 +202,7 @@ describe('voting', () => {
 					assert.deepEqual(session.status, { proposalsRegistrationStarted: {} });
 					assert.equal(session.proposalsCount, 2);
 
-					const { sessionWorkflowStatusChanged, proposalRegistered } = await client.getTxEvents(tx);
+					const { sessionWorkflowStatusChanged, proposalRegistered } = events;
 
 					assert.equal(sessionWorkflowStatusChanged.sessionId.toString(), sessionId.toString());
 					assert.deepEqual(sessionWorkflowStatusChanged.previousStatus, { registeringVoters: {} });
@@ -251,7 +245,7 @@ describe('voting', () => {
 
 			describe('> stopProposalsRegistration', () => {
 				it('> should fail when called with bad session status', async () => {
-					await assertError(() => client.stopProposalsRegistration(administrator.payer, sessionId), {
+					await assertError(() => client.stopProposalsRegistration(administrator, sessionId), {
 						number: 6000,
 						code: 'UnexpectedSessionStatus',
 						errorMessage: 'Unexpected session status',
@@ -271,7 +265,7 @@ describe('voting', () => {
 
 			describe('> startVotingSession', () => {
 				it('> should fail when called with bad session status', async () => {
-					await assertError(() => client.startVotingSession(administrator.payer, sessionId), {
+					await assertError(() => client.startVotingSession(administrator, sessionId), {
 						number: 6000,
 						code: 'UnexpectedSessionStatus',
 						errorMessage: 'Unexpected session status',
@@ -282,7 +276,7 @@ describe('voting', () => {
 
 			describe('> stopVotingSession', () => {
 				it('> should fail when called with bad session status', async () => {
-					await assertError(() => client.stopVotingSession(administrator.payer, sessionId), {
+					await assertError(() => client.stopVotingSession(administrator, sessionId), {
 						number: 6000,
 						code: 'UnexpectedSessionStatus',
 						errorMessage: 'Unexpected session status',
@@ -293,7 +287,7 @@ describe('voting', () => {
 
 			context('## voting status is ProposalsRegistrationStarted', () => {
 				beforeEach(async () => {
-					await client.startProposalsRegistration(administrator.payer, sessionId);
+					await client.startProposalsRegistration(administrator, sessionId);
 					await client.registerProposal(batman, sessionId, 'proposal 2');
 				});
 
@@ -303,8 +297,8 @@ describe('voting', () => {
 						const name = 'New Session';
 						const description = 'New session Z';
 
-						const { tx } = await client.createVotingSession(batman, name, description);
-						const { sessionCreated } = await client.getTxEvents(tx);
+						const { events } = await client.createVotingSession(batman, name, description);
+						const { sessionCreated } = events;
 
 						assert.equal(sessionCreated.sessionId.toNumber(), expectedSessionId.toNumber());
 						assert.equal(sessionCreated.name, name);
@@ -314,7 +308,7 @@ describe('voting', () => {
 
 				describe('> registerVoter', () => {
 					it('> should fail when called with bad session status', async () => {
-						await assertError(() => client.registerVoter(administrator.payer, sessionId, batman.publicKey), {
+						await assertError(() => client.registerVoter(administrator, sessionId, batman.publicKey), {
 							number: 6000,
 							code: 'UnexpectedSessionStatus',
 							errorMessage: 'Unexpected session status',
@@ -325,7 +319,7 @@ describe('voting', () => {
 
 				describe('> startProposalsRegistration', () => {
 					it('> should fail when called with bad session status', async () => {
-						await assertError(() => client.startProposalsRegistration(administrator.payer, sessionId), {
+						await assertError(() => client.startProposalsRegistration(administrator, sessionId), {
 							number: 6000,
 							code: 'UnexpectedSessionStatus',
 							errorMessage: 'Unexpected session status',
@@ -348,7 +342,7 @@ describe('voting', () => {
 
 					it('> should succeed when called with registered voter address', async () => {
 						const {
-							tx,
+							events,
 							accounts: { proposalAccountPubkey, voterAccountPubkey },
 						} = await client.registerProposal(batman, sessionId, 'proposal 3');
 
@@ -362,7 +356,7 @@ describe('voting', () => {
 						assert.equal(voter.voter.toString(), batman.publicKey.toString());
 						assert.equal(voter.nbProposals, 2);
 
-						const { proposalRegistered } = await client.getTxEvents(tx);
+						const { proposalRegistered } = events;
 						assert.equal(proposalRegistered.sessionId.toNumber(), sessionId.toNumber());
 						assert.equal(proposalRegistered.proposalId, 3);
 						assert.equal(proposalRegistered.description, 'proposal 3');
@@ -371,8 +365,8 @@ describe('voting', () => {
 
 				describe('> stopProposalsRegistration', () => {
 					it('> should succeed when called with contrat owner address', async () => {
-						const { tx } = await client.stopProposalsRegistration(administrator.payer, sessionId);
-						const { sessionWorkflowStatusChanged } = await client.getTxEvents(tx);
+						const { events } = await client.stopProposalsRegistration(administrator, sessionId);
+						const { sessionWorkflowStatusChanged } = events;
 
 						assert.equal(sessionWorkflowStatusChanged.sessionId.toString(), sessionId.toString());
 						assert.deepEqual(sessionWorkflowStatusChanged.previousStatus, { proposalsRegistrationStarted: {} });
@@ -382,13 +376,13 @@ describe('voting', () => {
 
 				context('## voting status is ProposalsRegistrationStopped', () => {
 					beforeEach(async () => {
-						await client.stopProposalsRegistration(administrator.payer, sessionId);
+						await client.stopProposalsRegistration(administrator, sessionId);
 					});
 
 					describe('> startVotingSession', () => {
 						it('> should succeed when called with session administrator', async () => {
-							const { tx } = await client.startVotingSession(administrator.payer, sessionId);
-							const { sessionWorkflowStatusChanged } = await client.getTxEvents(tx);
+							const { events } = await client.startVotingSession(administrator, sessionId);
+							const { sessionWorkflowStatusChanged } = events;
 
 							assert.equal(sessionWorkflowStatusChanged.sessionId.toString(), sessionId.toString());
 							assert.deepEqual(sessionWorkflowStatusChanged.previousStatus, { proposalsRegistrationEnded: {} });
@@ -398,7 +392,7 @@ describe('voting', () => {
 
 					describe('> registerVoter', () => {
 						it('> should fail when called with bad session status', async () => {
-							await assertError(() => client.registerVoter(administrator.payer, sessionId, superman.publicKey), {
+							await assertError(() => client.registerVoter(administrator, sessionId, superman.publicKey), {
 								number: 6000,
 								code: 'UnexpectedSessionStatus',
 								errorMessage: 'Unexpected session status',
@@ -409,7 +403,7 @@ describe('voting', () => {
 
 					describe('> startProposalsRegistration', () => {
 						it('> should fail when called with bad session status', async () => {
-							await assertError(() => client.startProposalsRegistration(administrator.payer, sessionId), {
+							await assertError(() => client.startProposalsRegistration(administrator, sessionId), {
 								number: 6000,
 								code: 'UnexpectedSessionStatus',
 								errorMessage: 'Unexpected session status',
@@ -420,7 +414,7 @@ describe('voting', () => {
 
 					describe('> stopProposalsRegistration', () => {
 						it('> should fail when called with bad session status', async () => {
-							await assertError(() => client.stopProposalsRegistration(administrator.payer, sessionId), {
+							await assertError(() => client.stopProposalsRegistration(administrator, sessionId), {
 								number: 6000,
 								code: 'UnexpectedSessionStatus',
 								errorMessage: 'Unexpected session status',
@@ -431,7 +425,7 @@ describe('voting', () => {
 
 					describe('> registerProposal', () => {
 						it('> should fail when called with bad session status', async () => {
-							await assertError(() => client.registerProposal(administrator.payer, sessionId, 'proposal N'), {
+							await assertError(() => client.registerProposal(administrator, sessionId, 'proposal N'), {
 								number: 3012,
 								code: 'AccountNotInitialized',
 								errorMessage: 'The program expected this account to be already initialized',
@@ -442,7 +436,7 @@ describe('voting', () => {
 
 					describe('> stopVotingSession', () => {
 						it('> should succeed when called with session administrator', async () => {
-							await assertError(() => client.registerProposal(administrator.payer, sessionId, 'proposal N'), {
+							await assertError(() => client.registerProposal(administrator, sessionId, 'proposal N'), {
 								number: 3012,
 								code: 'AccountNotInitialized',
 								errorMessage: 'The program expected this account to be already initialized',
@@ -464,7 +458,7 @@ describe('voting', () => {
 
 					context('## voting status is VotingSessionStarted', () => {
 						beforeEach(async () => {
-							await client.startVotingSession(administrator.payer, sessionId);
+							await client.startVotingSession(administrator, sessionId);
 						});
 
 						describe('> createVotingSession', () => {
@@ -473,8 +467,8 @@ describe('voting', () => {
 								const name = 'New Session';
 								const description = 'New session Z';
 
-								const { tx } = await client.createVotingSession(batman, name, description);
-								const { sessionCreated } = await client.getTxEvents(tx);
+								const { events } = await client.createVotingSession(batman, name, description);
+								const { sessionCreated } = events;
 
 								assert.equal(sessionCreated.sessionId.toNumber(), expectedSessionId.toNumber());
 								assert.equal(sessionCreated.name, name);
@@ -484,7 +478,7 @@ describe('voting', () => {
 
 						describe('> registerVoter', () => {
 							it('> should fail when called with bad session status', async () => {
-								await assertError(() => client.registerVoter(administrator.payer, sessionId, superman.publicKey), {
+								await assertError(() => client.registerVoter(administrator, sessionId, superman.publicKey), {
 									number: 6000,
 									code: 'UnexpectedSessionStatus',
 									errorMessage: 'Unexpected session status',
@@ -495,7 +489,7 @@ describe('voting', () => {
 
 						describe('> startProposalsRegistration', () => {
 							it('> should fail when called with bad session status', async () => {
-								await assertError(() => client.startProposalsRegistration(administrator.payer, sessionId), {
+								await assertError(() => client.startProposalsRegistration(administrator, sessionId), {
 									number: 6000,
 									code: 'UnexpectedSessionStatus',
 									errorMessage: 'Unexpected session status',
@@ -506,7 +500,7 @@ describe('voting', () => {
 
 						describe('> stopProposalsRegistration', () => {
 							it('> should fail when called with bad session status', async () => {
-								await assertError(() => client.stopProposalsRegistration(administrator.payer, sessionId), {
+								await assertError(() => client.stopProposalsRegistration(administrator, sessionId), {
 									number: 6000,
 									code: 'UnexpectedSessionStatus',
 									errorMessage: 'Unexpected session status',
@@ -517,7 +511,7 @@ describe('voting', () => {
 
 						describe('> registerProposal', () => {
 							it('> should fail when called with bad session status', async () => {
-								await assertError(() => client.registerProposal(administrator.payer, sessionId, 'proposal N'), {
+								await assertError(() => client.registerProposal(administrator, sessionId, 'proposal N'), {
 									number: 3012,
 									code: 'AccountNotInitialized',
 									errorMessage: 'The program expected this account to be already initialized',
@@ -528,7 +522,7 @@ describe('voting', () => {
 
 						describe('> startVotingSession', () => {
 							it('> should fail when called with bad session status', async () => {
-								await assertError(() => client.startVotingSession(administrator.payer, sessionId), {
+								await assertError(() => client.startVotingSession(administrator, sessionId), {
 									number: 6000,
 									code: 'UnexpectedSessionStatus',
 									errorMessage: 'Unexpected session status',
@@ -539,8 +533,8 @@ describe('voting', () => {
 
 						describe('> stopVotingSession', () => {
 							it('> should succeed when called with session administrator', async () => {
-								const { tx } = await client.stopVotingSession(administrator.payer, sessionId);
-								const { sessionWorkflowStatusChanged } = await client.getTxEvents(tx);
+								const { events } = await client.stopVotingSession(administrator, sessionId);
+								const { sessionWorkflowStatusChanged } = events;
 
 								assert.equal(sessionWorkflowStatusChanged.sessionId.toString(), sessionId.toString());
 								assert.deepEqual(sessionWorkflowStatusChanged.previousStatus, { votingSessionStarted: {} });
@@ -551,7 +545,7 @@ describe('voting', () => {
 						describe('> vote', () => {
 							it('> should succeed when called with registered voter address', async () => {
 								const {
-									tx,
+									events,
 									accounts: { voterAccountPubkey, proposalAccountPubkey },
 								} = await client.vote(batman, sessionId, 1);
 
@@ -562,7 +556,7 @@ describe('voting', () => {
 								assert.equal(voter.hasVoted, true);
 								assert.equal(voter.votedProposalId, 1);
 
-								const { voted } = await client.getTxEvents(tx);
+								const { voted } = events;
 
 								assert.equal(voted.sessionId.toString(), sessionId.toString());
 								assert.deepEqual(voted.proposalId, 1);
@@ -591,7 +585,7 @@ describe('voting', () => {
 
 						context('## voting status is VotingSessionEnded', () => {
 							beforeEach(async () => {
-								await client.stopVotingSession(administrator.payer, sessionId);
+								await client.stopVotingSession(administrator, sessionId);
 							});
 
 							describe('> createVotingSession', () => {
@@ -600,8 +594,8 @@ describe('voting', () => {
 									const name = 'New Session';
 									const description = 'New session Z';
 
-									const { tx } = await client.createVotingSession(batman, name, description);
-									const { sessionCreated } = await client.getTxEvents(tx);
+									const { events } = await client.createVotingSession(batman, name, description);
+									const { sessionCreated } = events;
 
 									assert.equal(sessionCreated.sessionId.toNumber(), expectedSessionId.toNumber());
 									assert.equal(sessionCreated.name, name);
@@ -611,7 +605,7 @@ describe('voting', () => {
 
 							describe('> registerVoter', () => {
 								it('> should fail when called with bad session status', async () => {
-									await assertError(() => client.registerVoter(administrator.payer, sessionId, superman.publicKey), {
+									await assertError(() => client.registerVoter(administrator, sessionId, superman.publicKey), {
 										number: 6000,
 										code: 'UnexpectedSessionStatus',
 										errorMessage: 'Unexpected session status',
@@ -622,7 +616,7 @@ describe('voting', () => {
 
 							describe('> startProposalsRegistration', () => {
 								it('> should fail when called with bad session status', async () => {
-									await assertError(() => client.startProposalsRegistration(administrator.payer, sessionId), {
+									await assertError(() => client.startProposalsRegistration(administrator, sessionId), {
 										number: 6000,
 										code: 'UnexpectedSessionStatus',
 										errorMessage: 'Unexpected session status',
@@ -633,7 +627,7 @@ describe('voting', () => {
 
 							describe('> stopProposalsRegistration', () => {
 								it('> should fail when called with bad session status', async () => {
-									await assertError(() => client.stopProposalsRegistration(administrator.payer, sessionId), {
+									await assertError(() => client.stopProposalsRegistration(administrator, sessionId), {
 										number: 6000,
 										code: 'UnexpectedSessionStatus',
 										errorMessage: 'Unexpected session status',
@@ -644,7 +638,7 @@ describe('voting', () => {
 
 							describe('> startVotingSession', () => {
 								it('> should fail when called with bad session status', async () => {
-									await assertError(() => client.startVotingSession(administrator.payer, sessionId), {
+									await assertError(() => client.startVotingSession(administrator, sessionId), {
 										number: 6000,
 										code: 'UnexpectedSessionStatus',
 										errorMessage: 'Unexpected session status',
@@ -655,7 +649,7 @@ describe('voting', () => {
 
 							describe('> stopVotingSession', () => {
 								it('> should fail when called with bad session status', async () => {
-									await assertError(() => client.stopVotingSession(administrator.payer, sessionId), {
+									await assertError(() => client.stopVotingSession(administrator, sessionId), {
 										number: 6000,
 										code: 'UnexpectedSessionStatus',
 										errorMessage: 'Unexpected session status',
@@ -689,11 +683,11 @@ describe('voting', () => {
 							describe('> tallyVotes', () => {
 								it('> should succeed when called with contrat owner address', async () => {
 									const {
-										tx,
+										events,
 										accounts: { sessionAccountPubkey },
-									} = await client.tallyVotes(administrator.payer, sessionId);
+									} = await client.tallyVotes(administrator, sessionId);
 
-									const { sessionWorkflowStatusChanged, votesTallied } = await client.getTxEvents(tx);
+									const { sessionWorkflowStatusChanged, votesTallied } = events;
 									assert.equal(sessionWorkflowStatusChanged.sessionId.toString(), sessionId.toString());
 									assert.deepEqual(sessionWorkflowStatusChanged.previousStatus, { votingSessionEnded: {} });
 									assert.deepEqual(sessionWorkflowStatusChanged.currentStatus, { votesTallied: {} });
@@ -713,7 +707,7 @@ describe('voting', () => {
 
 							context('## voting status is VotesTallied', () => {
 								beforeEach(async () => {
-									await client.tallyVotes(administrator.payer, sessionId);
+									await client.tallyVotes(administrator, sessionId);
 								});
 								describe('> createVotingSession', () => {
 									it('> should succeed when called with non administrator account', async () => {
@@ -721,8 +715,8 @@ describe('voting', () => {
 										const name = 'New Session';
 										const description = 'New session Z';
 
-										const { tx } = await client.createVotingSession(batman, name, description);
-										const { sessionCreated } = await client.getTxEvents(tx);
+										const { events } = await client.createVotingSession(batman, name, description);
+										const { sessionCreated } = events;
 
 										assert.equal(sessionCreated.sessionId.toNumber(), expectedSessionId.toNumber());
 										assert.equal(sessionCreated.name, name);
@@ -732,7 +726,7 @@ describe('voting', () => {
 
 								describe('> registerVoter', () => {
 									it('> should fail when called with bad session status', async () => {
-										await assertError(() => client.registerVoter(administrator.payer, sessionId, superman.publicKey), {
+										await assertError(() => client.registerVoter(administrator, sessionId, superman.publicKey), {
 											number: 6000,
 											code: 'UnexpectedSessionStatus',
 											errorMessage: 'Unexpected session status',
@@ -743,7 +737,7 @@ describe('voting', () => {
 
 								describe('> startProposalsRegistration', () => {
 									it('> should fail when called with bad session status', async () => {
-										await assertError(() => client.startProposalsRegistration(administrator.payer, sessionId), {
+										await assertError(() => client.startProposalsRegistration(administrator, sessionId), {
 											number: 6000,
 											code: 'UnexpectedSessionStatus',
 											errorMessage: 'Unexpected session status',
@@ -754,7 +748,7 @@ describe('voting', () => {
 
 								describe('> stopProposalsRegistration', () => {
 									it('> should fail when called with bad session status', async () => {
-										await assertError(() => client.stopProposalsRegistration(administrator.payer, sessionId), {
+										await assertError(() => client.stopProposalsRegistration(administrator, sessionId), {
 											number: 6000,
 											code: 'UnexpectedSessionStatus',
 											errorMessage: 'Unexpected session status',
@@ -765,7 +759,7 @@ describe('voting', () => {
 
 								describe('> startVotingSession', () => {
 									it('> should fail when called with bad session status', async () => {
-										await assertError(() => client.startVotingSession(administrator.payer, sessionId), {
+										await assertError(() => client.startVotingSession(administrator, sessionId), {
 											number: 6000,
 											code: 'UnexpectedSessionStatus',
 											errorMessage: 'Unexpected session status',
@@ -776,7 +770,7 @@ describe('voting', () => {
 
 								describe('> stopVotingSession', () => {
 									it('> should fail when called with bad session status', async () => {
-										await assertError(() => client.stopVotingSession(administrator.payer, sessionId), {
+										await assertError(() => client.stopVotingSession(administrator, sessionId), {
 											number: 6000,
 											code: 'UnexpectedSessionStatus',
 											errorMessage: 'Unexpected session status',
@@ -809,7 +803,7 @@ describe('voting', () => {
 
 								describe('> tallyVotes', () => {
 									it('> should fail when called with bad session status', async () => {
-										await assertError(() => client.tallyVotes(administrator.payer, sessionId), {
+										await assertError(() => client.tallyVotes(administrator, sessionId), {
 											number: 6000,
 											code: 'UnexpectedSessionStatus',
 											errorMessage: 'Unexpected session status',
@@ -826,11 +820,11 @@ describe('voting', () => {
 	});
 
 	describe('> A complete super heroes voting session', () => {
-		const acquaman = anchor.web3.Keypair.generate();
-		const ironman = anchor.web3.Keypair.generate();
-		const antman = anchor.web3.Keypair.generate();
-		const spiderman = anchor.web3.Keypair.generate();
-		const wonderwoman = anchor.web3.Keypair.generate();
+		const acquaman = new Wallet(anchor.web3.Keypair.generate());
+		const ironman = new Wallet(anchor.web3.Keypair.generate());
+		const antman = new Wallet(anchor.web3.Keypair.generate());
+		const spiderman = new Wallet(anchor.web3.Keypair.generate());
+		const wonderwoman = new Wallet(anchor.web3.Keypair.generate());
 
 		before(async () => {
 			await connection.requestAirdrop(acquaman.publicKey, 1000000000);
@@ -841,19 +835,19 @@ describe('voting', () => {
 
 			const {
 				accounts: { sessionAccountPubkey },
-			} = await client.createVotingSession(administrator.payer, 'Super Heroes', 'Complete vote');
+			} = await client.createVotingSession(administrator, 'Super Heroes', 'Complete vote');
 			const session = await client.getSession(sessionAccountPubkey);
 			sessionId = session.sessionId;
 
-			await client.registerVoter(administrator.payer, sessionId, superman.publicKey);
-			await client.registerVoter(administrator.payer, sessionId, batman.publicKey);
-			await client.registerVoter(administrator.payer, sessionId, wonderwoman.publicKey);
-			await client.registerVoter(administrator.payer, sessionId, acquaman.publicKey);
-			await client.registerVoter(administrator.payer, sessionId, ironman.publicKey);
-			await client.registerVoter(administrator.payer, sessionId, antman.publicKey);
-			await client.registerVoter(administrator.payer, sessionId, spiderman.publicKey);
+			await client.registerVoter(administrator, sessionId, superman.publicKey);
+			await client.registerVoter(administrator, sessionId, batman.publicKey);
+			await client.registerVoter(administrator, sessionId, wonderwoman.publicKey);
+			await client.registerVoter(administrator, sessionId, acquaman.publicKey);
+			await client.registerVoter(administrator, sessionId, ironman.publicKey);
+			await client.registerVoter(administrator, sessionId, antman.publicKey);
+			await client.registerVoter(administrator, sessionId, spiderman.publicKey);
 
-			await client.startProposalsRegistration(administrator.payer, sessionId);
+			await client.startProposalsRegistration(administrator, sessionId);
 
 			await client.registerProposal(superman, sessionId, 'Humans should serve cryptonian people !!'); // 2
 			await client.registerProposal(superman, sessionId, 'Cryptonian people should serve me'); // 3
@@ -861,9 +855,9 @@ describe('voting', () => {
 			await client.registerProposal(wonderwoman, sessionId, 'Only women should be allowed to vote here next time'); // 5
 			await client.registerProposal(acquaman, sessionId, 'We should make a big tsunami!'); // 6
 
-			await client.stopProposalsRegistration(administrator.payer, sessionId);
+			await client.stopProposalsRegistration(administrator, sessionId);
 
-			await client.startVotingSession(administrator.payer, sessionId);
+			await client.startVotingSession(administrator, sessionId);
 
 			await client.vote(superman, sessionId, 4);
 			await client.vote(batman, sessionId, 3);
@@ -872,7 +866,7 @@ describe('voting', () => {
 			await client.vote(ironman, sessionId, 6);
 			await client.vote(spiderman, sessionId, 3);
 
-			await client.stopVotingSession(administrator.payer, sessionId);
+			await client.stopVotingSession(administrator, sessionId);
 		});
 
 		it('> should allow to fetch registered voters with pagination', async () => {
@@ -992,9 +986,8 @@ describe('voting', () => {
 		});
 
 		it('> should allow to get the voting session result', async () => {
-			const { tx } = await client.tallyVotes(administrator.payer, sessionId);
-
-			const { sessionWorkflowStatusChanged, votesTallied } = await client.getTxEvents(tx);
+			const { events } = await client.tallyVotes(administrator, sessionId);
+			const { sessionWorkflowStatusChanged, votesTallied } = events;
 			assert.equal(sessionWorkflowStatusChanged.sessionId.toString(), sessionId.toString());
 			assert.deepEqual(sessionWorkflowStatusChanged.previousStatus, { votingSessionEnded: {} });
 			assert.deepEqual(sessionWorkflowStatusChanged.currentStatus, { votesTallied: {} });

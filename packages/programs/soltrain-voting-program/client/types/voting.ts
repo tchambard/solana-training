@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/voting.json`.
  */
 export type Voting = {
-	address: '4PGnHfbudx56T214YReyJ25n3UCfLvWG5icWocESzH6n';
+	address: '8H7dfzoBA4kJjokGqDgQ4VsDeBqg7SuMWFUWowdvRQda';
 	metadata: {
 		name: 'voting';
 		version: '0.1.0';
@@ -498,10 +498,6 @@ export type Voting = {
 				kind: 'struct';
 				fields: [
 					{
-						name: 'admin';
-						type: 'pubkey';
-					},
-					{
 						name: 'sessionId';
 						type: 'u64';
 					},
@@ -520,6 +516,10 @@ export type Voting = {
 								name: 'sessionWorkflowStatus';
 							};
 						};
+					},
+					{
+						name: 'admin';
+						type: 'pubkey';
 					},
 					{
 						name: 'votersCount';
