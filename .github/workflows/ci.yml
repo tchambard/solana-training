@@ -37,7 +37,7 @@ jobs:
 
     - name: Init solana-test-validator-docker tool
       run: |
-        ./node_modules/.bin/solana-docker-shell init
+        echo "{\"imageName\": \"tchambard/solana-test-validator:latest\", \"containerName\": \"solana-test-validator\", \"bypassLocalExe\": true }" >> .solrc
 
     - name: Lint
       run: |
