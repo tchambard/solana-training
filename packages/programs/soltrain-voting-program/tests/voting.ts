@@ -870,6 +870,30 @@ describe('voting', () => {
 		});
 
 		it('> should allow to fetch registered voters with pagination', async () => {
+			for (let i = 0; i < 10; i++) {
+				await client.createVotingSession(administrator, `s${i}`, `Session ${i}`);
+			}
+			const sessionsPage1 = await client.listSessions({ page: 1, perPage: 4 });
+			const sessionsPage2 = await client.listSessions({ page: 2, perPage: 4 });
+			const sessionsPage3 = await client.listSessions({ page: 3, perPage: 4 });
+
+			assert.lengthOf(sessionsPage1, 4);
+			assert.lengthOf(sessionsPage2, 4);
+			assert.lengthOf(sessionsPage3, 2);
+
+			[...sessionsPage1, ...sessionsPage2, ...sessionsPage3].slice(1).forEach((session, i) => {
+				assert.equal(session.sessionId.toNumber(), i + 1);
+				assert.equal(session.name, `s${i}`);
+				assert.equal(session.description, `Session ${i}`);
+				assert.isDefined(session.status.registeringVoters);
+				assert.equal(session.admin.toString(), administrator.publicKey.toString());
+				assert.equal(session.votersCount, 0);
+				assert.equal(session.proposalsCount, 1);
+				assert.ok(session.winningProposalId.equals(Buffer.from([])));
+			});
+		});
+
+		it('> should allow to fetch registered voters with pagination', async () => {
 			const votersPage1 = await client.listVoters(sessionId, { page: 1, perPage: 4 });
 			assert.sameDeepMembers(votersPage1, [
 				{

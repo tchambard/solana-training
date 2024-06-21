@@ -201,7 +201,7 @@ export class VotingClient extends AbstractSolanaClient {
 	}
 
 	public async listVoters(sessionId: BN, paginationOptions?: { page: number; perPage: number }) {
-		const voterAccountDiscriminator = Buffer.from(sha256.digest('account:VoterAccount')).slice(0, 8);
+		const voterAccountDiscriminator = Buffer.from(sha256.digest('account:VoterAccount')).subarray(0, 8);
 		const accounts = await this.connection.getProgramAccounts(this.program.programId, {
 			dataSlice: { offset: 8 + 8 + 32, length: 4 }, // Fetch the voter_id only.
 			filters: [
@@ -217,8 +217,24 @@ export class VotingClient extends AbstractSolanaClient {
 		return this.getPage(this.program.account.voterAccount, addresses, paginationOptions?.page, paginationOptions?.perPage);
 	}
 
+	public async listSessions(paginationOptions?: { page: number; perPage: number }) {
+		const sessionAccountDiscriminator = Buffer.from(sha256.digest('account:SessionAccount')).subarray(0, 8);
+		const accounts = await this.connection.getProgramAccounts(this.program.programId, {
+			dataSlice: { offset: 8, length: 8 }, // Fetch the session_id only.
+			filters: [
+				{ memcmp: { offset: 0, bytes: bs58.encode(sessionAccountDiscriminator) } }, // Ensure it's a SessionAccount account.
+			],
+		});
+		const addresses = accounts
+			.map(({ pubkey, account }) => ({ pubkey, sessionId: new BN(account.data, 'le').toNumber() }))
+			.sort((a, b) => a.sessionId - b.sessionId)
+			.map((account) => account.pubkey);
+
+		return this.getPage(this.program.account.sessionAccount, addresses, paginationOptions?.page, paginationOptions?.perPage);
+	}
+
 	public async listProposals(sessionId: BN, paginationOptions?: { page: number; perPage: number }) {
-		const proposalAccountDiscriminator = Buffer.from(sha256.digest('account:ProposalAccount')).slice(0, 8);
+		const proposalAccountDiscriminator = Buffer.from(sha256.digest('account:ProposalAccount')).subarray(0, 8);
 		const accounts = await this.connection.getProgramAccounts(this.program.programId, {
 			dataSlice: { offset: 8 + 8, length: 1 }, // Fetch the proposal_id only.
 			filters: [
