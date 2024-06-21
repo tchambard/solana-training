@@ -879,7 +879,7 @@ describe('voting', () => {
 
 			assert.lengthOf(sessionsPage1, 4);
 			assert.lengthOf(sessionsPage2, 4);
-			assert.lengthOf(sessionsPage3, 2);
+			assert.lengthOf(sessionsPage3, 3);
 
 			[...sessionsPage1, ...sessionsPage2, ...sessionsPage3].slice(1).forEach((session, i) => {
 				assert.equal(session.sessionId.toNumber(), i + 1);
