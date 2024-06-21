@@ -2433,7 +2433,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jridgewell/sourcemap-codec@npm:^1.4.10, @jridgewell/sourcemap-codec@npm:^1.4.14":
+"@jridgewell/sourcemap-codec@npm:^1.4.10, @jridgewell/sourcemap-codec@npm:^1.4.14, @jridgewell/sourcemap-codec@npm:^1.4.15":
   version: 1.4.15
   resolution: "@jridgewell/sourcemap-codec@npm:1.4.15"
   checksum: 10/89960ac087781b961ad918978975bcdf2051cd1741880469783c42de64239703eab9db5230d776d8e6a09d73bb5e4cb964e07d93ee6e2e7aea5a7d726e865c09
@@ -3303,6 +3303,22 @@ __metadata:
   peerDependencies:
     rollup: ^1.20.0 || ^2.0.0
   checksum: 10/09e2dba2998c666fe2be2aaa6118dce3b47f53386b863fd596080c10065867b41bfbf0b1608d87f7dc3bf1a3867e8ebe0ebf958cc94a312116f94378ae61237b
+  languageName: node
+  linkType: hard
+
+"@rollup/plugin-inject@npm:^5.0.5":
+  version: 5.0.5
+  resolution: "@rollup/plugin-inject@npm:5.0.5"
+  dependencies:
+    "@rollup/pluginutils": "npm:^5.0.1"
+    estree-walker: "npm:^2.0.2"
+    magic-string: "npm:^0.30.3"
+  peerDependencies:
+    rollup: ^1.20.0||^2.0.0||^3.0.0||^4.0.0
+  peerDependenciesMeta:
+    rollup:
+      optional: true
+  checksum: 10/1d0e68dff0a8785398a1b6a7dac0dc0a7f2ded22319c0b4c411053f34cbe237ca897d1fc97e5150fddbc3486480f21cbeeb69f0ae7f44ab1ae7307c164c7e704
   languageName: node
   linkType: hard
 
@@ -10658,6 +10674,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"magic-string@npm:^0.30.3":
+  version: 0.30.10
+  resolution: "magic-string@npm:0.30.10"
+  dependencies:
+    "@jridgewell/sourcemap-codec": "npm:^1.4.15"
+  checksum: 10/9f8bf6363a14c98a9d9f32ef833b194702a5c98fb931b05ac511b76f0b06fd30ed92beda6ca3261d2d52d21e39e891ef1136fbd032023f6cbb02d0b7d5767201
+  languageName: node
+  linkType: hard
+
 "make-dir@npm:^3.0.0, make-dir@npm:^3.0.2":
   version: 3.1.0
   resolution: "make-dir@npm:3.1.0"
@@ -11232,7 +11257,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-stdlib-browser@npm:1.2.0":
+"node-stdlib-browser@npm:1.2.0, node-stdlib-browser@npm:^1.2.0":
   version: 1.2.0
   resolution: "node-stdlib-browser@npm:1.2.0"
   dependencies:
@@ -13402,16 +13427,18 @@ __metadata:
     react-lazy-load-image-component: "npm:1.6.0"
     react-router-dom: "npm:6.23.1"
     recoil: "npm:0.7.7"
+    soltrain-voting-program: "workspace:^"
     vite: "npm:5.2.11"
     vite-plugin-compression: "npm:0.5.1"
     vite-plugin-html: "npm:3.2.2"
+    vite-plugin-node-polyfills: "npm:^0.22.0"
     vite-plugin-pwa: "npm:0.20.0"
     vite-tsconfig-paths: "npm:4.3.2"
     zod: "npm:3.23.8"
   languageName: unknown
   linkType: soft
 
-"soltrain-voting-program@workspace:packages/programs/soltrain-voting-program":
+"soltrain-voting-program@workspace:^, soltrain-voting-program@workspace:packages/programs/soltrain-voting-program":
   version: 0.0.0-use.local
   resolution: "soltrain-voting-program@workspace:packages/programs/soltrain-voting-program"
   dependencies:
@@ -14741,6 +14768,18 @@ __metadata:
   peerDependencies:
     vite: ">=2.0.0"
   checksum: 10/e0d2f8cddc21209d1db4502de546d8a457016f7a38e02af89742a85ee1638b3515ae90532a344e25bd0745665376f793cef10b8b90d9d3d97529c58808d8d06d
+  languageName: node
+  linkType: hard
+
+"vite-plugin-node-polyfills@npm:^0.22.0":
+  version: 0.22.0
+  resolution: "vite-plugin-node-polyfills@npm:0.22.0"
+  dependencies:
+    "@rollup/plugin-inject": "npm:^5.0.5"
+    node-stdlib-browser: "npm:^1.2.0"
+  peerDependencies:
+    vite: ^2.0.0 || ^3.0.0 || ^4.0.0 || ^5.0.0
+  checksum: 10/004a68987d271c04e1a7b9df38f8fca32b1e4a261b464f69895af5ea90e40cbb31e18170435613cb9f2edc735589267ff51772c8793f6f567ba2849da8d36ec4
   languageName: node
   linkType: hard
 

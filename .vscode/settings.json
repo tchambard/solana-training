@@ -1,5 +1,4 @@
 {
-
     "[typescript]": {
         "editor.defaultFormatter": "vscode.typescript-language-features",
         "editor.tabSize": 4
@@ -10,9 +9,9 @@
     "editor.detectIndentation": false,
     "search.exclude": {
         "**/node_modules/**": true,
-        "**/build/": true,
-        "**/dist/": true,
-        "**/target/": true
+        "**/build/**": true,
+        "**/dist/**": true,
+        "**/target/**": true
     },
     "gitlens.statusBar.enabled": false,
     "gitlens.hovers.enabled": false,

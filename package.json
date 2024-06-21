@@ -17,6 +17,7 @@
         "g:clean-lint-compile": "cd $INIT_CWD && yarn g:clean && yarn g:lint && yarn g:compile",
         "g:depcheck": "cd $INIT_CWD && depcheck",
         "g:mocha": "cd $INIT_CWD && mocha",
+        "g:tsc": "cd $INIT_CWD && tsc",
         "g:ts-mocha": "cd $INIT_CWD && ts-mocha",
         "g:prettier": "cd $INIT_CWD && prettier \"**/*.{js,jsx,ts,tsx}\" --check",
         "g:prettier-fix": "cd $INIT_CWD && prettier \"**/*.{js,jsx,ts,tsx}\" -w",
