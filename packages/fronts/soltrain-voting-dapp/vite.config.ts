@@ -1,15 +1,23 @@
-import { defineConfig, loadEnv, splitVendorChunkPlugin } from 'vite';
+import { defineConfig, splitVendorChunkPlugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { VitePWA } from 'vite-plugin-pwa';
 import { createHtmlPlugin } from 'vite-plugin-html';
 import viteCompression from 'vite-plugin-compression';
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
+import * as path from 'path';
 
 const { default: stdLibBrowser } = await import('node-stdlib-browser');
 
 export default defineConfig({
 	resolve: {
-		alias: stdLibBrowser,
+		alias: {
+			...stdLibBrowser,
+			'@voting-idl': path.resolve(
+				'../../programs/soltrain-voting-program/target/idl/voting.json',
+			),
+			'@voting': path.resolve('../../programs/soltrain-voting-program/client'),
+		},
 	},
 	optimizeDeps: {
 		// 👈 optimizedeps
@@ -97,5 +105,8 @@ export default defineConfig({
 		}),
 		viteCompression(),
 		splitVendorChunkPlugin(),
+		nodePolyfills({
+			include: ['process'],
+		}),
 	],
 });

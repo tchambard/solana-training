@@ -1,6 +1,11 @@
 import { atom } from 'recoil';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { Connection, clusterApiUrl } from '@solana/web3.js';
+import {
+	Connection,
+	LAMPORTS_PER_SOL,
+	PublicKey,
+	clusterApiUrl,
+} from '@solana/web3.js';
 
 type WalletState = {
 	network: WalletAdapterNetwork;
@@ -8,9 +13,9 @@ type WalletState = {
 	connection: Connection;
 };
 
-const network = WalletAdapterNetwork.Devnet;
-const endpoint = clusterApiUrl(network);
-const connection = new Connection(endpoint, 'confirmed');
+export const network = WalletAdapterNetwork.Devnet;
+export const endpoint = clusterApiUrl(network);
+export const connection = new Connection(endpoint, 'confirmed');
 
 export const walletState = atom<WalletState>({
 	key: 'walletState',
@@ -20,3 +25,13 @@ export const walletState = atom<WalletState>({
 		connection,
 	},
 });
+
+export async function getSolanaBalance(publicKey: string): Promise<number> {
+	const connection = new Connection(process.env.REACT_APP_RPC_URL!);
+	const balanceInLamports = await connection.getBalance(
+		new PublicKey(publicKey),
+	);
+	const balanceInSol = balanceInLamports / LAMPORTS_PER_SOL;
+
+	return balanceInSol;
+}
