@@ -8,21 +8,21 @@ dotenv.config();
 
 const walletSecretKey = process.env.WALLET_SECRET_KEY;
 if (!walletSecretKey) {
-    throw new Error('Missing WALLET_SECRET_KEY in .env');
+	throw new Error('Missing WALLET_SECRET_KEY in .env');
 }
 const secretKey = Uint8Array.from(JSON.parse(walletSecretKey));
 const walletKeypair = Keypair.fromSecretKey(secretKey);
 
 const deploy = async () => {
-    const connection = new Connection('http://127.0.0.1:8899', 'confirmed');
-    const wallet = new Wallet(walletKeypair);
-    const provider = new AnchorProvider(connection, wallet, AnchorProvider.defaultOptions());
-    const program = new Program<Voting>(idl as Voting, provider);
-    const votingClient = new VotingClient(program, { skipPreflight: false });
+	const connection = new Connection('http://127.0.0.1:8899', 'confirmed');
+	const wallet = new Wallet(walletKeypair);
+	const provider = new AnchorProvider(connection, wallet, AnchorProvider.defaultOptions());
+	const program = new Program<Voting>(idl as Voting, provider);
+	const votingClient = new VotingClient(program, { skipPreflight: false });
 
-    const { tx } = await votingClient.initGlobal(wallet);
+	const { tx } = await votingClient.initGlobal(wallet);
 
-    console.log('Transaction successful, global account created with TX:', tx);
+	console.log('Transaction successful, global account created with TX:', tx);
 };
 
 deploy().catch(console.error);

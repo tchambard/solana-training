@@ -1,16 +1,37 @@
 import { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AppLoading from '@/components/loading/AppLoading';
+import VotingWrapper from '@/content/voting/components/VotingWrapper';
+
+export class RoutePaths {
+	public static ROOT = `/`;
+
+	public static VOTING_SESSION_LIST = `/voting`;
+	public static VOTING_SESSION_DETAIL = `${RoutePaths.VOTING_SESSION_LIST}/:sessionId`;
+}
 
 const fallback = {
 	from: '*',
-	to: '/',
+	to: RoutePaths.ROOT,
 };
 
 const pages = [
 	{
 		component: lazy(() => import('@/pages/IndexPage')),
-		path: '/',
+		path: RoutePaths.ROOT,
+	},
+	{
+		component: lazy(
+			() =>
+				import('src/content/voting/components/list/VotingSessionListContainer'),
+		),
+		path: RoutePaths.VOTING_SESSION_LIST,
+	},
+	{
+		component: lazy(
+			() => import('src/content/voting/components/detail/VotingSessionContainer'),
+		),
+		path: RoutePaths.VOTING_SESSION_DETAIL,
 	},
 ];
 
@@ -23,7 +44,9 @@ export default function DefaultRoute() {
 					path={page.path}
 					element={
 						<Suspense fallback={<AppLoading />}>
-							<page.component />
+							<VotingWrapper>
+								<page.component />
+							</VotingWrapper>
 						</Suspense>
 					}
 				/>

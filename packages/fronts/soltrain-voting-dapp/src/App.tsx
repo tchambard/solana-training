@@ -1,7 +1,7 @@
 import '@/lib/i18n';
 import { Suspense, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useRoutes } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import 'react-lazy-load-image-component/src/effects/opacity.css';
@@ -16,6 +16,7 @@ import DefaultRoute from '@/routes/DefaultRoute';
 import { RecoilRoot, useRecoilValue } from 'recoil';
 import { colorModeState } from '@/store/colorMode';
 import SolanaWalletProvider from '@/components/provider/SolanaWalletProvider';
+import { HelmetProvider } from 'react-helmet-async';
 
 function InnerApp() {
 	const { i18n } = useTranslation();
@@ -34,20 +35,22 @@ function InnerApp() {
 						horizontal: 'right',
 					}}
 				>
-					<SolanaWalletProvider>
-						<BrowserRouter>
-							<Routes>
-								<Route
-									path="*"
-									element={
-										<DefaultLayout>
-											<DefaultRoute />
-										</DefaultLayout>
-									}
-								/>
-							</Routes>
-						</BrowserRouter>
-					</SolanaWalletProvider>
+					<HelmetProvider>
+						<SolanaWalletProvider>
+							<BrowserRouter>
+								<Routes>
+									<Route
+										path="*"
+										element={
+											<DefaultLayout>
+												<DefaultRoute />
+											</DefaultLayout>
+										}
+									/>
+								</Routes>
+							</BrowserRouter>
+						</SolanaWalletProvider>
+					</HelmetProvider>
 				</SnackbarProvider>
 			</ThemeProvider>
 		</LocalizationProvider>

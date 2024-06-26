@@ -7,14 +7,29 @@ import ColorModeChanger from '@/components/theme/ColorModeChanger';
 
 import logo from '@/assets/img/logo/solana-sol-logo.svg';
 
-import { useRecoilValue } from 'recoil';
-import { colorModeState } from '@/store/colorMode';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { useEffect, useState } from 'react';
+import { getSolanaBalance } from '@/services/VotingClientWrapper';
+import { useWallet } from '@solana/wallet-adapter-react';
 
 export default function DefaultHeader() {
 	const navigate = useNavigate();
 	const theme = useTheme();
 	const xsDisplay = useMediaQuery(theme.breakpoints.down('sm'));
+	const { publicKey } = useWallet();
+
+	const [solanaBalance, setSolanaBalance] = useState<number | null>(null);
+
+	useEffect(() => {
+		if (publicKey) {
+			getSolanaBalance(publicKey.toBase58()).then((balance) =>
+				setSolanaBalance(balance),
+			);
+		} else {
+			setSolanaBalance(null);
+		}
+	}, [publicKey]);
+
 	return (
 		<>
 			<Container maxWidth="lg">
@@ -37,7 +52,20 @@ export default function DefaultHeader() {
 					}
 
 					<div style={{ flexGrow: 1 }} />
-					{!xsDisplay && <ColorModeChanger />}
+
+					{!xsDisplay && (
+						<>
+							<ColorModeChanger />
+							<div>
+								{solanaBalance !== null && (
+									<div>
+										<p>{solanaBalance} SOL</p>
+									</div>
+								)}
+							</div>
+						</>
+					)}
+
 					<Box pl={2}>
 						<WalletMultiButton />
 					</Box>

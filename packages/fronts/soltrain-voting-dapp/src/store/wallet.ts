@@ -1,11 +1,7 @@
 import { atom } from 'recoil';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import {
-	Connection,
-	LAMPORTS_PER_SOL,
-	PublicKey,
-	clusterApiUrl,
-} from '@solana/web3.js';
+import { Connection, clusterApiUrl } from '@solana/web3.js';
+import { VotingClient } from 'soltrain-voting-program';
 
 type WalletState = {
 	network: WalletAdapterNetwork;
@@ -13,8 +9,14 @@ type WalletState = {
 	connection: Connection;
 };
 
+type TxState = {
+	pending: boolean;
+	error?: string;
+};
+
 export const network = WalletAdapterNetwork.Devnet;
-export const endpoint = clusterApiUrl(network);
+// export const endpoint = clusterApiUrl(network);
+export const endpoint = 'http://localhost:8899/';
 export const connection = new Connection(endpoint, 'confirmed');
 
 export const walletState = atom<WalletState>({
@@ -26,12 +28,14 @@ export const walletState = atom<WalletState>({
 	},
 });
 
-export async function getSolanaBalance(publicKey: string): Promise<number> {
-	const connection = new Connection(process.env.REACT_APP_RPC_URL!);
-	const balanceInLamports = await connection.getBalance(
-		new PublicKey(publicKey),
-	);
-	const balanceInSol = balanceInLamports / LAMPORTS_PER_SOL;
+export const txState = atom<TxState>({
+	key: 'txState',
+	default: {
+		pending: false,
+	},
+});
 
-	return balanceInSol;
-}
+export const votingClientState = atom<VotingClient | undefined>({
+	key: 'votingClientState',
+	default: undefined,
+});
