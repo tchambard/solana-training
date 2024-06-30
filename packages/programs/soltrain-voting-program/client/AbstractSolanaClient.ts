@@ -1,12 +1,11 @@
-import { Address, BorshCoder, EventParser, Idl, Program } from '@coral-xyz/anchor';
+import { Address, BorshCoder, EventParser, Idl, Program, Wallet } from '@coral-xyz/anchor';
 import { Connection, PublicKey, SendOptions, Transaction } from '@solana/web3.js';
 import * as _ from 'lodash';
-import { Wallet } from '@coral-xyz/anchor/dist/cjs/provider';
 
 export interface ITransactionResult {
 	tx: string;
 	accounts?: NodeJS.Dict<PublicKey>;
-	events;
+	events: any;
 }
 
 export class AbstractSolanaClient<T extends Idl> {
@@ -38,7 +37,7 @@ export class AbstractSolanaClient<T extends Idl> {
 		return (await this.connection.getLatestBlockhash()).blockhash;
 	}
 
-	protected async getPage<R>(account: any, addresses: Address[], page: number = 1, perPage: number = 20): Promise<R[]> {
+	protected async getPage<R>(account: any, addresses: Address[], page: number = 1, perPage: number = 200): Promise<R[]> {
 		const paginatedPublicKeys = addresses.slice((page - 1) * perPage, page * perPage);
 		if (paginatedPublicKeys.length === 0) {
 			return [];

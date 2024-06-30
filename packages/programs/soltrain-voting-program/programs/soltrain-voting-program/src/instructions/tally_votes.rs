@@ -67,13 +67,17 @@ pub fn tally_votes<'info>(
         .map(|&(_, votes)| votes)
         .unwrap_or(0);
 
-    let winning_proposal_ids: Vec<u8> = winning_proposals
+    let winning_proposals: Vec<u8> = winning_proposals
         .iter()
         .filter(|&&(_, votes)| votes == max_votes)
         .map(|&(id, _)| id)
         .collect();
 
     session_account.status = SessionWorkflowStatus::VotesTallied;
+    session_account.result.total_votes = total_votes;
+    session_account.result.blank_votes = blank_votes;
+    session_account.result.abstention = abstention;
+    session_account.result.winning_proposals = winning_proposals.clone();
 
     emit!(VotesTallied {
         session_id: session_account.session_id,
@@ -81,7 +85,7 @@ pub fn tally_votes<'info>(
         total_votes,
         blank_votes,
         abstention,
-        winning_proposals: winning_proposal_ids,
+        winning_proposals,
     });
 
     emit!(SessionWorkflowStatusChanged {

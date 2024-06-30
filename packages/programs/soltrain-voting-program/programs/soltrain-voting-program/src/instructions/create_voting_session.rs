@@ -40,6 +40,12 @@ pub fn create_voting_session(
     session_account.description = description.clone();
     session_account.proposals_count = 1; // 0 is abstention vote
     session_account.voters_count = 0;
+    session_account.result = SessionResult {
+        total_votes: 0,
+        blank_votes: 0,
+        abstention: 0,
+        winning_proposals: Vec::with_capacity(10),
+    };
 
     global_account.session_count += 1;
 
