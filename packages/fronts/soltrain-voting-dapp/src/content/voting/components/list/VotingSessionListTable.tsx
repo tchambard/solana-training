@@ -15,7 +15,7 @@ import VotingSessionListItemActions from './VotingSessionListItemActions';
 
 import { votingSessionListState } from '@/store/voting';
 import { useRecoilState, useRecoilValue } from 'recoil';
-import { votingClientState } from '@/store/wallet';
+import { connection, votingClientState } from '@/store/wallet';
 
 export default () => {
 	const [sessionList, setSessionList] = useRecoilState(votingSessionListState);
@@ -23,13 +23,28 @@ export default () => {
 
 	useEffect(() => {
 		if (!votingClient) return;
+		if (sessionList.loaded) return;
+
 		votingClient.listSessions().then((sessions) => {
+			console.log('sessions :>> ', sessions);
 			setSessionList({
 				items: sessions,
+				loaded: true,
 			});
 		});
-		// dispatch(LISTEN_VOTING_SESSION_CREATED.request());
-	}, [votingClient]);
+
+		const listener = votingClient.addEventListener('sessionCreated', (event) => {
+			setSessionList({
+				items: sessionList.items,
+				loaded: false,
+			});
+		});
+		return () => {
+			if (listener) {
+				votingClient.program.removeEventListener(listener);
+			}
+		};
+	}, [votingClient, sessionList.loaded]);
 
 	return (
 		<>

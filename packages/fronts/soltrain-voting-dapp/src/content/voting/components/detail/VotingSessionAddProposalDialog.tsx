@@ -10,21 +10,34 @@ import {
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import { LoadingButton } from '@mui/lab';
+import { useAnchorWallet } from '@solana/wallet-adapter-react';
+import { useRecoilValue } from 'recoil';
+import { votingClientState } from '@/store/wallet';
+import { votingSessionCurrentState } from '@/store/voting';
+import { Wallet } from '@coral-xyz/anchor';
 
 interface IAddProposalDialogProps {
 	dialogVisible: boolean;
 	setDialogVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
+interface IRegisterProposalParams {
+	description: string;
+}
+
 export default ({
 	dialogVisible,
 	setDialogVisible,
 }: IAddProposalDialogProps) => {
-	// const { txPending, currentSession } = useSelector(
-	// 	(state: RootState) => state.voting,
-	// );
-	// const [formData, setFormData] = useState<Partial<IRegisterProposalParams>>({});
-	const [formData, setFormData] = useState<Partial<any>>({});
+	const anchorWallet = useAnchorWallet() as Wallet;
+	const votingClient = useRecoilValue(votingClientState);
+	const sessionCurrent = useRecoilValue(votingSessionCurrentState);
+
+	const [pending, setPending] = useState(false);
+
+	const [formData, setFormData] = useState<Partial<IRegisterProposalParams>>({});
+
+	if (!anchorWallet || !votingClient || !sessionCurrent) return <></>;
 
 	return (
 		<Dialog
@@ -39,16 +52,20 @@ export default ({
 			<DialogContent dividers>
 				<FormContainer
 					defaultValues={formData}
-					// onSuccess={(data: IRegisterProposalParams) => {
-					//     setFormData(data);
-					//     // dispatch(
-					//     //     REGISTER_PROPOSAL.request({
-					//     //         sessionId: currentSession.item.id,
-					//     //         description: data.description,
-					//     //     }),
-					//     // );
-					//     setDialogVisible(false);
-					// }}
+					onSuccess={(data: IRegisterProposalParams) => {
+						setFormData(data);
+						setPending(true);
+						votingClient
+							?.registerProposal(
+								anchorWallet,
+								sessionCurrent.session.sessionId,
+								data.description,
+							)
+							.then(() => {
+								setPending(false);
+								setDialogVisible(false);
+							});
+					}}
 				>
 					<Stack direction={'column'}>
 						<TextFieldElement
@@ -59,7 +76,7 @@ export default ({
 						/>
 						<br />
 						<LoadingButton
-							// loading={txPending}
+							loading={pending}
 							loadingPosition={'end'}
 							variant={'contained'}
 							color={'primary'}

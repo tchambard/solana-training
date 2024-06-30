@@ -13,13 +13,16 @@ import VotingSessionProposalsList from './VotingSessionProposalsList';
 import VotingSessionResult from './VotingSessionResult';
 import styled from '@mui/styles/styled';
 import { useRecoilState, useRecoilValue } from 'recoil';
-import { votingSessionCurrentState } from '@/store/voting';
+import {
+	VotingSessionCurrentState,
+	votingSessionCurrentState,
+} from '@/store/voting';
 import BN from 'bn.js';
-import SuspenseLoader from '@/components/SuspenseLoader';
 import AppLoading from '@/components/loading/AppLoading';
-import { VotingSessionStatus } from 'soltrain-voting-program';
-import { useAnchorWallet, useWallet } from '@solana/wallet-adapter-react';
 import { votingClientState } from '@/store/wallet';
+import { useAnchorWallet } from '@solana/wallet-adapter-react';
+import { Wallet } from '@coral-xyz/anchor';
+import { Voter } from '@voting';
 
 const Item = styled(Paper)(({ theme }) => ({
 	// color: theme.palette.text.secondary,
@@ -31,94 +34,138 @@ export default () => {
 		votingSessionCurrentState,
 	);
 	const votingClient = useRecoilValue(votingClientState);
-	const anchorWallet = useAnchorWallet();
+	const anchorWallet = useAnchorWallet() as Wallet;
 
 	useEffect(() => {
-		console.log('sessionId :>> ', sessionId);
-		console.log('sessionCurrent :>> ', sessionCurrent);
+		if (votingClient == null || sessionId == null) return;
+
+		const listeners: number[] = [];
+
 		if (
-			votingClient != null &&
-			sessionId != null &&
-			(sessionCurrent?.session == null ||
-				sessionCurrent.session.sessionId.toString() !== sessionId)
+			!sessionCurrent ||
+			sessionCurrent.session.sessionId.toString() !== sessionId
 		) {
 			const sid = new BN(sessionId);
 			const sessionAccountAddress = votingClient.findSessionAccountAddress(sid);
 			Promise.all([
 				votingClient.getSession(sessionAccountAddress),
+				// TODO: manage pagination for voters and proposals
 				votingClient.listVoters(sid),
 				votingClient.listProposals(sid),
 			]).then(([session, voters, proposals]) => {
-				setSessionCurrent({
+				const newSessionState: VotingSessionCurrentState = {
 					session,
-					voters,
+					voters: voters.reduce(
+						(acc, voter) => {
+							acc[voter.voter.toString()] = voter;
+							return acc;
+						},
+						{} as { [pubkey: string]: Voter },
+					),
 					proposals,
 					isAdmin: anchorWallet?.publicKey.toString() === session.admin.toString(),
+				};
+				setSessionCurrent(newSessionState);
+			});
+		} else {
+			const sessionWorkflowStatusChangesListener = votingClient.addEventListener(
+				'sessionWorkflowStatusChanged',
+				(event) => {
+					setSessionCurrent({
+						...sessionCurrent,
+						session: {
+							...sessionCurrent.session,
+							status: votingClient.mapSessionStatus(event.currentStatus),
+						},
+					});
+				},
+			);
+			sessionWorkflowStatusChangesListener &&
+				listeners.push(sessionWorkflowStatusChangesListener);
+
+			const voterRegistrationListener = votingClient.addEventListener(
+				'voterRegistered',
+				(event) => {
+					votingClient
+						.listVoters(sessionCurrent.session.sessionId)
+						.then((voters) => {
+							setSessionCurrent({
+								...sessionCurrent,
+								voters: voters.reduce(
+									(acc, voter) => {
+										acc[voter.voter.toString()] = voter;
+										return acc;
+									},
+									{} as { [pubkey: string]: Voter },
+								),
+								session: {
+									...sessionCurrent.session,
+									votersCount: sessionCurrent.session.votersCount + 1,
+								},
+							});
+						});
+				},
+			);
+			voterRegistrationListener && listeners.push(voterRegistrationListener);
+
+			const proposalRegistrationListener = votingClient.addEventListener(
+				'proposalRegistered',
+				(event) => {
+					votingClient
+						.listProposals(sessionCurrent.session.sessionId)
+						.then((proposals) => {
+							setSessionCurrent({
+								...sessionCurrent,
+								proposals,
+								session: {
+									...sessionCurrent.session,
+									proposalsCount: sessionCurrent.session.proposalsCount + 1,
+								},
+							});
+						});
+				},
+			);
+			proposalRegistrationListener && listeners.push(proposalRegistrationListener);
+
+			const voteListener = votingClient.addEventListener('voted', (event) => {
+				const voterPubkey = event.voter.toString();
+				setSessionCurrent({
+					...sessionCurrent,
+					voters: {
+						...sessionCurrent.voters,
+						[voterPubkey]: {
+							...sessionCurrent.voters[voterPubkey],
+							hasVoted: true,
+							votedProposalId: event.proposalId,
+						},
+					},
 				});
 			});
+			voteListener && listeners.push(voteListener);
+
+			const voteTallyListener = votingClient.addEventListener(
+				'votesTallied',
+				(event) => {
+					setSessionCurrent({
+						...sessionCurrent,
+						session: {
+							...sessionCurrent.session,
+							result: {
+								...event,
+								winningProposals: [...event.winningProposals],
+							},
+						},
+					});
+				},
+			);
+			voteTallyListener && listeners.push(voteTallyListener);
 		}
-		// else {
-		//     if (sessionCurrent.item != null) {
-		//         // dispatch(LISTEN_VOTING_SESSION_STATUS_CHANGED.request(sessionId));
 
-		//         if (
-		//             sessionCurrent.item.status >=
-		//             VotingSessionStatus.RegisteringVoters
-		//         ) {
-		//             votingClient.listVoters(sessionCurrent.item.sessionId).then((voters) => {
-
-		//             });
-		//             // dispatch(LIST_VOTERS.request(sessionCurrent.item.id));
-		//             if (
-		//                 sessionCurrent.item.status ===
-		//                 VotingSessionStatus.RegisteringVoters
-		//             ) {
-		//                 dispatch(LISTEN_VOTER_REGISTERED.request(sessionCurrent.item.id));
-		//             }
-		//         }
-
-		//         if (
-		//             sessionCurrent.item.status >=
-		//             VotingSessionStatus.ProposalsRegistrationStarted
-		//         ) {
-		//             dispatch(LIST_PROPOSALS.request(sessionCurrent.item.id));
-		//             if (
-		//                 sessionCurrent.item.status ===
-		//                 VotingSessionStatus.ProposalsRegistrationStarted
-		//             ) {
-		//                 dispatch(LISTEN_PROPOSAL_REGISTERED.request(sessionCurrent.item.id));
-		//             }
-		//         }
-
-		//         if (
-		//             sessionCurrent.item.status ===
-		//             VotingSessionStatus.VotingSessionEnded
-		//         ) {
-		//             dispatch(LISTEN_VOTES_TALLIED.request(sessionCurrent.item.id));
-		//         }
-
-		//         if (
-		//             sessionCurrent.item.status === VotingSessionStatus.VotesTallied
-		//         ) {
-		//             dispatch(GET_VOTES_RESULT.request(sessionCurrent.item.id));
-		//         }
-
-		//         if (
-		//             sessionCurrent.item.status >=
-		//             VotingSessionStatus.VotingSessionStarted
-		//         ) {
-		//             // if (_.keys(voters.items).length && !voters.loading && !proposals.loading) {
-		//             dispatch(LIST_VOTES.request(sessionCurrent.item.id));
-		//             // }
-		//             if (
-		//                 sessionCurrent.item.status ===
-		//                 VotingSessionStatus.VotingSessionStarted
-		//             ) {
-		//                 dispatch(LISTEN_VOTED.request(sessionCurrent.item.id));
-		//             }
-		//         }
-		// }
-		// }
+		return () => {
+			listeners.forEach((listener) => {
+				votingClient.program.removeEventListener(listener);
+			});
+		};
 	}, [sessionCurrent?.session?.sessionId, sessionCurrent?.session?.status]);
 
 	if (!sessionCurrent?.session) {

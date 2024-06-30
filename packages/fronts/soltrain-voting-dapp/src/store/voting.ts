@@ -1,23 +1,23 @@
 import { atom } from 'recoil';
-import { Proposal, Voter, VotingSession } from 'soltrain-voting-program';
+import { Proposal, Voter, VotingSession } from '@voting';
 
-type VotingSessionListState = { items: VotingSession[] };
+type VotingSessionListState = { items: VotingSession[]; loaded: boolean };
 
 export const votingSessionListState = atom<VotingSessionListState>({
 	key: 'votingSessionListState',
-	default: { items: [] },
+	default: { items: [], loaded: false },
 });
 
-type VotingSessionCurrentState =
-	| {
-			session: VotingSession;
-			voters: Voter[];
-			proposals: Proposal[];
-			isAdmin: boolean;
-	  }
-	| undefined;
+export type VotingSessionCurrentState = {
+	session: VotingSession;
+	voters: { [publicKey: string]: Voter };
+	proposals: Proposal[];
+	isAdmin: boolean;
+};
 
-export const votingSessionCurrentState = atom<VotingSessionCurrentState>({
+export const votingSessionCurrentState = atom<
+	VotingSessionCurrentState | undefined
+>({
 	key: 'votingSessionCurrentState',
 	default: undefined,
 });

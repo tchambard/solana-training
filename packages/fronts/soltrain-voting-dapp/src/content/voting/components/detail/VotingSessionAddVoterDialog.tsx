@@ -10,18 +10,32 @@ import {
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import { LoadingButton } from '@mui/lab';
+import { votingClientState } from '@/store/wallet';
+import { useRecoilValue } from 'recoil';
+import { useAnchorWallet } from '@solana/wallet-adapter-react';
+import { Wallet } from '@coral-xyz/anchor';
+import { votingSessionCurrentState } from '@/store/voting';
+import { PublicKey } from '@solana/web3.js';
 
 interface IAddVoterDialogProps {
 	dialogVisible: boolean;
 	setDialogVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
+interface IRegisterVoterParams {
+	address: string;
+}
+
 export default ({ dialogVisible, setDialogVisible }: IAddVoterDialogProps) => {
-	// const { txPending, currentSession } = useSelector(
-	// 	(state: RootState) => state.voting,
-	// );
-	// const [formData, setFormData] = useState<Partial<IRegisterVoterParams>>({});
-	const [formData, setFormData] = useState<Partial<any>>({});
+	const anchorWallet = useAnchorWallet() as Wallet;
+	const votingClient = useRecoilValue(votingClientState);
+	const sessionCurrent = useRecoilValue(votingSessionCurrentState);
+
+	const [pending, setPending] = useState(false);
+
+	const [formData, setFormData] = useState<Partial<IRegisterVoterParams>>({});
+
+	if (!anchorWallet || !votingClient || !sessionCurrent) return <></>;
 
 	return (
 		<Dialog
@@ -34,16 +48,20 @@ export default ({ dialogVisible, setDialogVisible }: IAddVoterDialogProps) => {
 			<DialogContent dividers>
 				<FormContainer
 					defaultValues={formData}
-					// onSuccess={(data: IRegisterVoterParams) => {
-					//     setFormData(data);
-					//     dispatch(
-					//         REGISTER_VOTER.request({
-					//             sessionId: currentSession.item.id,
-					//             address: data.address,
-					//         }),
-					//     );
-					//     setDialogVisible(false);
-					// }}
+					onSuccess={(data: IRegisterVoterParams) => {
+						setFormData(data);
+						setPending(true);
+						votingClient
+							?.registerVoter(
+								anchorWallet,
+								sessionCurrent.session.sessionId,
+								new PublicKey(data.address),
+							)
+							.then(() => {
+								setPending(false);
+								setDialogVisible(false);
+							});
+					}}
 				>
 					<Stack direction={'column'}>
 						<TextFieldElement
@@ -54,7 +72,7 @@ export default ({ dialogVisible, setDialogVisible }: IAddVoterDialogProps) => {
 						/>
 						<br />
 						<LoadingButton
-							// loading={txPending}
+							loading={pending}
 							loadingPosition={'end'}
 							variant={'contained'}
 							color={'primary'}

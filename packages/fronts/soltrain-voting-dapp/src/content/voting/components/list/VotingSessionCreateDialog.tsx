@@ -10,25 +10,30 @@ import {
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import { LoadingButton } from '@mui/lab';
-import { votingClient } from '@/services/VotingClientWrapper';
 import { useAnchorWallet, useWallet } from '@solana/wallet-adapter-react';
 import { votingClientState } from '@/store/wallet';
 import { useRecoilValue } from 'recoil';
+import { Wallet } from '@coral-xyz/anchor';
 
 interface IVoterSessionCreateDialogProps {
 	dialogVisible: boolean;
 	setDialogVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
+interface ICreateVotingSessionParams {
+	name: string;
+	description: string;
+}
+
 export default ({
 	dialogVisible,
 	setDialogVisible,
 }: IVoterSessionCreateDialogProps) => {
-	const anchorWallet = useAnchorWallet();
+	const anchorWallet = useAnchorWallet() as Wallet;
 	const votingClient = useRecoilValue(votingClientState);
 	const [pending, setPending] = useState(false);
-	// const [formData, setFormData] = useState<Partial<ICreateVotingSessionParams>>(
-	const [formData, setFormData] = useState<Partial<any>>({});
+	const [formData, setFormData] =
+		useState<Partial<ICreateVotingSessionParams>>();
 
 	if (!anchorWallet || !votingClient) return <></>;
 	return (
@@ -45,6 +50,9 @@ export default ({
 				<FormContainer
 					defaultValues={formData}
 					onSuccess={(data) => {
+						if (!data.name || !data.description) {
+							return;
+						}
 						setFormData(data);
 						setPending(true);
 						votingClient

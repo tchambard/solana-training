@@ -1,7 +1,7 @@
 import { atom } from 'recoil';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { Connection, clusterApiUrl } from '@solana/web3.js';
-import { VotingClient } from 'soltrain-voting-program';
+import { VotingClient } from '@voting';
 
 type WalletState = {
 	network: WalletAdapterNetwork;

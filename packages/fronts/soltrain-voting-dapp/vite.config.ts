@@ -6,6 +6,7 @@ import { createHtmlPlugin } from 'vite-plugin-html';
 import viteCompression from 'vite-plugin-compression';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import * as path from 'path';
+import checker from 'vite-plugin-checker';
 
 const { default: stdLibBrowser } = await import('node-stdlib-browser');
 
@@ -30,7 +31,7 @@ export default defineConfig({
 				bigint: true,
 			},
 		},
-		include: ['buffer', 'process'],
+		include: ['buffer', 'process', '@solana/web3.js', '@coral-xyz/anchor'],
 	},
 	build: {
 		chunkSizeWarningLimit: 1000,
@@ -45,6 +46,9 @@ export default defineConfig({
 		},
 	},
 	plugins: [
+		checker({
+			typescript: true,
+		}),
 		react({
 			jsxImportSource: '@emotion/react',
 			babel: {

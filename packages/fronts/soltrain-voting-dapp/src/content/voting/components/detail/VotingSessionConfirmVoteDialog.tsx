@@ -10,13 +10,16 @@ import {
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import { LoadingButton } from '@mui/lab';
-
-type IProposal = {
-	description: string;
-};
+import { useAnchorWallet } from '@solana/wallet-adapter-react';
+import { useRecoilValue } from 'recoil';
+import { votingClientState } from '@/store/wallet';
+import { votingSessionCurrentState } from '@/store/voting';
+import { useState } from 'react';
+import { Wallet } from '@coral-xyz/anchor';
+import { Proposal } from '@voting';
 
 interface IConfirmVoteDialogProps {
-	proposal: IProposal;
+	proposal?: Proposal;
 	dialogVisible: boolean;
 	setDialogVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -26,9 +29,14 @@ export default ({
 	dialogVisible,
 	setDialogVisible,
 }: IConfirmVoteDialogProps) => {
-	// const { txPending, currentSession } = useSelector(
-	//     (state: RootState) => state.voting,
-	// );
+	const anchorWallet = useAnchorWallet() as Wallet;
+	const votingClient = useRecoilValue(votingClientState);
+	const sessionCurrent = useRecoilValue(votingSessionCurrentState);
+
+	const [pending, setPending] = useState(false);
+
+	if (!anchorWallet || !votingClient || !sessionCurrent || !proposal)
+		return <></>;
 
 	return (
 		<Dialog
@@ -41,20 +49,24 @@ export default ({
 			<DialogContent dividers>
 				<FormContainer
 					onSuccess={() => {
-						// dispatch(
-						//     VOTE.request({
-						//         sessionId: currentSession.item.id,
-						//         proposalId: proposal.proposalId,
-						//     }),
-						// );
-						setDialogVisible(false);
+						setPending(true);
+						votingClient
+							?.vote(
+								anchorWallet,
+								sessionCurrent.session.sessionId,
+								proposal.proposalId,
+							)
+							.then(() => {
+								setPending(false);
+								setDialogVisible(false);
+							});
 					}}
 				>
 					<Stack direction={'column'}>
 						<Typography>{proposal.description}</Typography>
 						<br />
 						<LoadingButton
-							// loading={txPending}
+							loading={pending}
 							loadingPosition={'end'}
 							variant={'contained'}
 							color={'primary'}

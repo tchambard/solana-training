@@ -18,7 +18,7 @@ import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { Voting, VotingClient } from '@voting';
 import idl from '@voting-idl';
 import { useTranslation } from 'react-i18next';
-import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
+import { useRecoilState, useSetRecoilState } from 'recoil';
 
 interface IWalletContainerWrapperProps {
 	children?: ReactNode;
@@ -34,20 +34,26 @@ export default ({ children }: IWalletContainerWrapperProps) => {
 
 	useEffect(() => {
 		const program = new Program<Voting>(idl as Voting, { connection });
-		setTx({ pending: true });
+
 		setVotingClient(
-			new VotingClient(program, { skipPreflight: false }, async (fn) => {
-				try {
-					const res = await fn();
-					setTx({ pending: false });
-					return res;
-				} catch (e: any) {
-					setTx({
-						pending: false,
-						error: e?.transactionMessage || e?.message || 'Unknown error',
-					});
-				}
-			}),
+			new VotingClient(
+				program,
+				{ skipPreflight: false },
+				async (fn): Promise<any> => {
+					try {
+						setTx({ pending: true });
+						const res = await fn();
+						setTx({ pending: false });
+						return res;
+					} catch (e: any) {
+						console.log('e :>> ', e);
+						setTx({
+							pending: false,
+							error: e?.transactionMessage || e?.message || 'Unknown error',
+						});
+					}
+				},
+			),
 		);
 	}, []);
 

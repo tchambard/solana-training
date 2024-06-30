@@ -11,12 +11,13 @@ import {
 	Stepper,
 	Typography,
 } from '@mui/material';
+import { Wallet } from '@coral-xyz/anchor';
 
 import VotingSessionDeleteDialog from '../list/VotingSessionDeleteDialog';
 
 import { useRecoilValue } from 'recoil';
 import { votingSessionCurrentState } from '@/store/voting';
-import { Voter } from 'soltrain-voting-program';
+import { Voter } from '@voting';
 import { useAnchorWallet } from '@solana/wallet-adapter-react';
 import AppLoading from '@/components/loading/AppLoading';
 import { votingClientState } from '@/store/wallet';
@@ -45,13 +46,8 @@ export default () => {
 	const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
 	const [nbVotesRemaining, setNbVotesRemaining] = useState<number>();
 	const sessionCurrent = useRecoilValue(votingSessionCurrentState);
-	const anchorWallet = useAnchorWallet();
+	const anchorWallet = useAnchorWallet() as Wallet;
 	const votingClient = useRecoilValue(votingClientState);
-
-	// const { contract, sessionCurrent, voters } = useSelector(
-	//     (state: RootState) => state.voting,
-	// );
-	// const { account } = useSelector((state: RootState) => state.ethNetwork);
 
 	useEffect(() => {
 		const _nbVotes = _.reduce(
@@ -85,13 +81,8 @@ export default () => {
 								onClick={async () => {
 									switch (sessionCurrent.session.status) {
 										case VotingSessionStatus.RegisteringVoters:
-											console.log(
-												'anchorWallet, sessionCurrent.session.sessionId :>> ',
-												anchorWallet,
-												sessionCurrent.session.sessionId,
-											);
 											votingClient.startProposalsRegistration(
-												anchorWallet,
+												anchorWallet as Wallet,
 												sessionCurrent.session.sessionId,
 											);
 											break;
@@ -243,7 +234,7 @@ export default () => {
 			<Grid container justifyContent={'space-between'} alignItems={'center'}>
 				<Grid item>
 					<Typography variant={'h3'} component={'h3'} gutterBottom>
-						{/* {sessionCurrent?.session.name} - {sessionCurrent?.session.description} */}
+						{sessionCurrent.session.name} - {sessionCurrent.session.description}
 					</Typography>
 				</Grid>
 				<Grid item>

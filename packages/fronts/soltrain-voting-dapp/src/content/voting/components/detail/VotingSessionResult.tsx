@@ -1,15 +1,25 @@
 import * as _ from 'lodash';
 import Grid from '@mui/material/Grid';
 import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemAvatar from '@mui/material/ListItemAvatar';
-import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
 import { styled, useTheme } from '@mui/material/styles';
-import { Container, Divider, Paper } from '@mui/material';
+import {
+	Container,
+	Divider,
+	ListItem,
+	ListItemAvatar,
+	ListItemText,
+	Paper,
+} from '@mui/material';
+import { Wallet } from '@coral-xyz/anchor';
 
-import SuspenseLoader from 'src/components/SuspenseLoader';
 import PageTitleWrapper from 'src/components/PageTitleWrapper';
+import { useAnchorWallet } from '@solana/wallet-adapter-react';
+import { useRecoilValue } from 'recoil';
+import { votingSessionCurrentState } from '@/store/voting';
+import { votingClientState } from '@/store/wallet';
+import { useState } from 'react';
+import AddressAvatar from '@/components/AddressAvatar';
 
 const Item = styled(Paper)(({ theme }) => ({
 	color: theme.palette.text.secondary,
@@ -17,16 +27,13 @@ const Item = styled(Paper)(({ theme }) => ({
 
 export default () => {
 	const theme = useTheme();
+	const anchorWallet = useAnchorWallet() as Wallet;
+	const votingClient = useRecoilValue(votingClientState);
+	const sessionCurrent = useRecoilValue(votingSessionCurrentState);
 
-	// const { result } = useSelector((state: RootState) => state.voting);
+	const [pending, setPending] = useState(false);
 
-	// if (result.loading) {
-	//     return <SuspenseLoader />;
-	// }
-
-	// if (!result.data) {
-	//     return <></>;
-	// }
+	if (!anchorWallet || !votingClient || !sessionCurrent) return <></>;
 
 	return (
 		<>
@@ -58,19 +65,28 @@ export default () => {
 									bgcolor: 'background.paper',
 								}}
 							>
-								{/* {_.map(result.data.winningProposals, (proposal, idx) => {
-                                    return (
-                                        <ListItem key={`winning_proposal_${idx}`}>
-                                            <ListItemAvatar>
-                                                <AddressAvatar address={proposal.proposer} />
-                                            </ListItemAvatar>
-                                            <ListItemText
-                                                primary={proposal.description}
-                                                secondary={`Nb votes: ${proposal.voteCount}`}
-                                            />
-                                        </ListItem>
-                                    );
-                                })} */}
+								{_.map(
+									sessionCurrent.session.result.winningProposals,
+									(proposalId, idx) => {
+										const proposal = _.find(
+											sessionCurrent.proposals,
+											(p) => p.proposalId === proposalId,
+										);
+										return proposal ? (
+											<ListItem key={`winning_proposal_${idx}`}>
+												<ListItemAvatar>
+													<AddressAvatar address={proposal.proposer.toString()} />
+												</ListItemAvatar>
+												<ListItemText
+													primary={proposal.description}
+													secondary={`Nb votes: ${proposal.voteCount}`}
+												/>
+											</ListItem>
+										) : (
+											<></>
+										);
+									},
+								)}
 							</List>
 						</Item>
 					</Grid>
@@ -99,36 +115,33 @@ export default () => {
 										color: theme.palette.text.secondary,
 									}}
 								>
-									Nb voters
+									Nb votes
 								</div>
-								{/* <div style={{ fontSize: '2em' }}>{result.data.votersCount}</div>
+								<div style={{ fontSize: '2em' }}>
+									{sessionCurrent.session.result.totalVotes}
+								</div>
 
-                                <div
-                                    style={{
-                                        color: theme.palette.text.secondary,
-                                    }}
-                                >
-                                    Nb votes
-                                </div>
-                                <div style={{ fontSize: '2em' }}>{result.data.totalVotes}</div>
+								<div
+									style={{
+										color: theme.palette.text.secondary,
+									}}
+								>
+									Abstention
+								</div>
+								<div style={{ fontSize: '2em' }}>
+									{sessionCurrent.session.result.abstention}
+								</div>
 
-                                <div
-                                    style={{
-                                        color: theme.palette.text.secondary,
-                                    }}
-                                >
-                                    Abstention
-                                </div>
-                                <div style={{ fontSize: '2em' }}>{result.data.abstention}</div>
-
-                                <div
-                                    style={{
-                                        color: theme.palette.text.secondary,
-                                    }}
-                                >
-                                    Blank votes
-                                </div>
-                                <div style={{ fontSize: '2em' }}>{result.data.blankVotes}</div> */}
+								<div
+									style={{
+										color: theme.palette.text.secondary,
+									}}
+								>
+									Blank votes
+								</div>
+								<div style={{ fontSize: '2em' }}>
+									{sessionCurrent.session.result.blankVotes}
+								</div>
 							</div>
 						</Item>
 					</Grid>
