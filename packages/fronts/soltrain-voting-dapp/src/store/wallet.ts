@@ -15,8 +15,8 @@ type TxState = {
 };
 
 export const network = WalletAdapterNetwork.Devnet;
-// export const endpoint = clusterApiUrl(network);
-export const endpoint = 'http://localhost:8899/';
+export const endpoint = clusterApiUrl(network);
+// export const endpoint = 'http://localhost:8899/';
 export const connection = new Connection(endpoint, 'confirmed');
 
 export const walletState = atom<WalletState>({

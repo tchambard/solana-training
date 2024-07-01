@@ -8,11 +8,14 @@ seeds = true
 [programs.localnet]
 voting = "8H7dfzoBA4kJjokGqDgQ4VsDeBqg7SuMWFUWowdvRQda"
 
+[programs.devnet]
+voting = "8H7dfzoBA4kJjokGqDgQ4VsDeBqg7SuMWFUWowdvRQda"
+
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
+cluster = "localnet"
 wallet = "/opt/.config/solana/id.json"
 
 [scripts]
