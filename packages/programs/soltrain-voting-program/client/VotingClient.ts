@@ -5,7 +5,7 @@ import { Wallet } from '@coral-xyz/anchor';
 import { PublicKey, SendOptions } from '@solana/web3.js';
 
 import { Voting } from './types/voting';
-import { AbstractSolanaClient, ITransactionResult } from './AbstractSolanaClient';
+import { AbstractSolanaClient, ITransactionResult, ProgramInstructionWrapper } from './AbstractSolanaClient';
 
 type InternalVotingSessionStatus =
 	| ({
@@ -109,12 +109,10 @@ export type Proposal = {
 
 export class VotingClient extends AbstractSolanaClient<Voting> {
 	public readonly globalAccountPubkey: PublicKey;
-	private readonly wrapFn: <T = void>(fn: () => Promise<T>) => Promise<T>;
 
-	constructor(program: Program<Voting>, options?: SendOptions, wrapFn?: (fn: () => Promise<any>) => Promise<any>) {
-		super(program, options);
+	constructor(program: Program<Voting>, options?: SendOptions, wrapFn?: ProgramInstructionWrapper<Voting>) {
+		super(program, options, wrapFn);
 		this.globalAccountPubkey = PublicKey.findProgramAddressSync([Buffer.from('global')], program.programId)[0];
-		this.wrapFn = wrapFn || this._wrapFn.bind(this);
 	}
 
 	public async initGlobal(payer: Wallet) {
@@ -426,18 +424,6 @@ export class VotingClient extends AbstractSolanaClient<Voting> {
 		return sessionAccountPubkey;
 	}
 
-	public addEventListener<E extends keyof IdlEvents<Voting>>(
-		eventName: E & string,
-		callback: (event: IdlEvents<Voting>[E], slot: number, signature: string) => void,
-	): number | undefined {
-		try {
-			return this.program.addEventListener(eventName, callback);
-		} catch (e) {
-			// silent error. problem encountered on vite dev server because of esm
-			return;
-		}
-	}
-
 	public mapSessionStatus(internalStatus: InternalVotingSessionStatus): VotingSessionStatus {
 		if (internalStatus.none) return VotingSessionStatus.None;
 		if (internalStatus.registeringVoters) return VotingSessionStatus.RegisteringVoters;
@@ -459,12 +445,4 @@ export class VotingClient extends AbstractSolanaClient<Voting> {
 			},
 		};
 	};
-
-	private async _wrapFn(fn: () => Promise<any>): Promise<any> {
-		try {
-			return await fn();
-		} catch (e) {
-			throw e;
-		}
-	}
 }
