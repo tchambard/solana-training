@@ -1627,7 +1627,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@coral-xyz/anchor@npm:^0.30.0":
+"@coral-xyz/anchor@npm:0.30.1":
   version: 0.30.1
   resolution: "@coral-xyz/anchor@npm:0.30.1"
   dependencies:
@@ -13849,7 +13849,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "soltrain-voting-program@workspace:packages/programs/soltrain-voting-program"
   dependencies:
-    "@coral-xyz/anchor": "npm:^0.30.0"
+    "@coral-xyz/anchor": "npm:0.30.1"
     "@solana/web3.js": "npm:^1.93.3"
     "@types/chai": "npm:^4.3.16"
     "@types/mocha": "npm:^10.0.6"

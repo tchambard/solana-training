@@ -1024,7 +1024,7 @@ describe('voting', () => {
 			assert.equal(votesTallied.totalVotes, 6);
 			assert.equal(votesTallied.blankVotes, 1);
 			assert.equal(votesTallied.abstention, 1);
-			assert.sameMembers(votesTallied.winningProposals, [3, 4]);
+			assert.sameMembers([...votesTallied.winningProposals], [3, 4]);
 		});
 	});
 });
